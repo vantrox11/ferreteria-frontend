@@ -15,8 +15,10 @@ import { toast } from "sonner"
 import {
   useGetApiInventarioAjustes,
   usePostApiInventarioAjustes,
+  getGetApiInventarioAjustesQueryKey,
 } from "@/api/generated/inventario/inventario"
-import type { Producto } from "@/api/generated/model"
+import type { Producto, InventarioAjuste } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -100,13 +102,13 @@ export default function InventarioPageV2() {
   // Fetch data
   const { data, isLoading, error } = useGetApiInventarioAjustes()
 
-  const allAjustes = (data?.data || []) as any[]
+  const allAjustes = data?.data ?? []
 
   // Filtrar localmente por búsqueda
   const ajustes = React.useMemo(() => {
     if (!debouncedSearch) return allAjustes
     const search = debouncedSearch.toLowerCase()
-    return allAjustes.filter((ajuste: any) => {
+    return allAjustes.filter((ajuste) => {
       return (
         ajuste.producto?.nombre?.toLowerCase().includes(search) ||
         ajuste.motivo?.toLowerCase().includes(search) ||
@@ -152,17 +154,16 @@ export default function InventarioPageV2() {
           setDialogOpen(false)
         }
 
-        await queryClient.invalidateQueries({ queryKey: ["/api/inventario/ajustes"] })
+        await queryClient.invalidateQueries({ queryKey: getGetApiInventarioAjustesQueryKey() })
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo registrar"
-        toast.error(message)
+      onError: (error) => {
+        toast.error(getErrorMessage(error, "No se pudo registrar el ajuste"))
       },
     },
   })
 
   // Definición de columnas
-  const columns = React.useMemo<ColumnDef<any>[]>(
+  const columns = React.useMemo<ColumnDef<InventarioAjuste>[]>(
     () => [
       {
         id: "select",
@@ -226,13 +227,14 @@ export default function InventarioPageV2() {
         },
       },
       {
-        accessorKey: "tipo",
+        accessorKey: "tipo_movimiento",
         header: "Tipo",
         cell: ({ row }) => {
-          const tipo = row.original.tipo
+          const tipoM = row.original.tipo_movimiento
+          const esEntrada = tipoM === "ENTRADA_AJUSTE"
           return (
-            <Badge variant={tipo === "entrada" ? "default" : "destructive"}>
-              {tipo === "entrada" ? (
+            <Badge variant={esEntrada ? "default" : "destructive"}>
+              {esEntrada ? (
                 <>
                   <Plus className="mr-1 h-3 w-3" /> Entrada
                 </>
@@ -259,21 +261,14 @@ export default function InventarioPageV2() {
           )
         },
         cell: ({ row }) => {
-          const unidad = row.original.producto?.unidad_medida
           const cantidad = row.original.cantidad ?? 0
-
-          let displayCantidad: string
-          if (unidad?.permite_decimales) {
-            displayCantidad = Number(cantidad).toFixed(3).replace(/\.?0+$/, "")
-          } else {
-            displayCantidad = Math.floor(Number(cantidad)).toString()
-          }
+          // Mostrar con decimales si tiene parte decimal, sino entero
+          const displayCantidad = Number.isInteger(cantidad)
+            ? cantidad.toString()
+            : Number(cantidad).toFixed(3).replace(/\.?0+$/, "")
 
           return (
-            <div className="flex items-center gap-1">
-              <span className="tabular-nums">{displayCantidad}</span>
-              {unidad && <span className="text-xs text-muted-foreground">{unidad.codigo}</span>}
-            </div>
+            <span className="tabular-nums">{displayCantidad}</span>
           )
         },
       },
@@ -336,7 +331,7 @@ export default function InventarioPageV2() {
 
     // Guardar referencia al botón que disparó el submit
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement
-    ;(window as any).__lastSubmitter = submitter
+      ; (window as any).__lastSubmitter = submitter
 
     createMutation.mutate({
       data: {

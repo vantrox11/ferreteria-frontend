@@ -16,29 +16,28 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
+import type { PagoMetodoPago } from "./pagoMetodoPago";
 import type { PagoReferencia } from "./pagoReferencia";
 import type { PagoNotas } from "./pagoNotas";
 import type { PagoUsuarioId } from "./pagoUsuarioId";
 import type { PagoUsuario } from "./pagoUsuario";
+import type { PagoCuentaPorCobrar } from "./pagoCuentaPorCobrar";
 
 export interface Pago {
-  /** ID único del pago */
   id: number;
-  /** Monto pagado */
   monto: number;
-  /** Método de pago */
-  metodo_pago: string;
-  /** Número de operación o referencia */
+  metodo_pago: PagoMetodoPago;
   referencia: PagoReferencia;
-  /** Fecha y hora del pago */
+  /** Fecha y hora del registro del pago */
   fecha_pago: string;
-  /** Observaciones del pago */
   notas: PagoNotas;
   tenant_id: number;
-  /** ID de la cuenta por cobrar asociada */
+  /** ID de la Cuenta por Cobrar asociada */
   cuenta_id: number;
   /** ID del usuario que registró el pago */
   usuario_id: PagoUsuarioId;
   /** Datos del usuario que registró el pago */
   usuario?: PagoUsuario;
+  /** Datos de la cuenta por cobrar asociada (solo en listados paginados) */
+  cuenta_por_cobrar?: PagoCuentaPorCobrar;
 }

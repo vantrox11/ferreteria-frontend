@@ -22,4 +22,6 @@ export type OrdenCompraDetallesItemProducto = {
   id: number;
   nombre: string;
   sku: OrdenCompraDetallesItemProductoSku;
+  /** Stock actual del producto */
+  stock: number;
 };

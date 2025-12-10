@@ -29,7 +29,7 @@ export interface TenantConfiguracion {
   subdominio: string;
   /** Indica si el tenant está activo */
   isActive: boolean;
-  /** Configuración general del tenant (pedidos, emails, facturación) */
+  /** Configuración general del tenant (pedidos, emails, facturación, empresa) */
   configuracion: TenantConfiguracionConfiguracion;
   /** Fecha de creación */
   created_at: string;

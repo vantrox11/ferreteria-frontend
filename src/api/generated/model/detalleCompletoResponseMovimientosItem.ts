@@ -17,8 +17,9 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 import type { DetalleCompletoResponseMovimientosItemTipo } from "./detalleCompletoResponseMovimientosItemTipo";
-import type { DetalleCompletoResponseMovimientosItemReferenciaTipo } from "./detalleCompletoResponseMovimientosItemReferenciaTipo";
-import type { DetalleCompletoResponseMovimientosItemReferenciaId } from "./detalleCompletoResponseMovimientosItemReferenciaId";
+import type { DetalleCompletoResponseMovimientosItemVentaId } from "./detalleCompletoResponseMovimientosItemVentaId";
+import type { DetalleCompletoResponseMovimientosItemNotaCreditoId } from "./detalleCompletoResponseMovimientosItemNotaCreditoId";
+import type { DetalleCompletoResponseMovimientosItemPagoId } from "./detalleCompletoResponseMovimientosItemPagoId";
 
 export type DetalleCompletoResponseMovimientosItem = {
   id: number;
@@ -26,8 +27,9 @@ export type DetalleCompletoResponseMovimientosItem = {
   descripcion: string;
   monto: number;
   fecha_hora: string;
-  referencia_tipo: DetalleCompletoResponseMovimientosItemReferenciaTipo;
-  referencia_id: DetalleCompletoResponseMovimientosItemReferenciaId;
-  /** Indica si fue generado automáticamente */
-  es_automatico: boolean;
+  venta_id: DetalleCompletoResponseMovimientosItemVentaId;
+  nota_credito_id: DetalleCompletoResponseMovimientosItemNotaCreditoId;
+  pago_id: DetalleCompletoResponseMovimientosItemPagoId;
+  /** Indica si es un movimiento manual */
+  es_manual: boolean;
 };

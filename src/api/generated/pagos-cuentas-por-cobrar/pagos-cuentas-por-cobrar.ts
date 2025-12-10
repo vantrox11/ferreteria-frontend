@@ -33,6 +33,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreatePago,
   GetApiCuentasPorCobrarIdPagos200,
   GetApiCuentasPorCobrarIdPagos400,
   GetApiCuentasPorCobrarIdPagos401,
@@ -47,7 +48,6 @@ import type {
   PostApiCuentasPorCobrarIdPagos404,
   PostApiCuentasPorCobrarIdPagos409,
   PostApiCuentasPorCobrarIdPagos500,
-  PostApiCuentasPorCobrarIdPagosBody,
 } from ".././model";
 
 import { customInstance } from "../../mutator/custom-instance";
@@ -64,7 +64,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 3. Crea registro en tabla Pagos
 4. Recalcula saldo_pendiente de la CxC
 5. Actualiza estado de la CxC (VIGENTE → PAGADA si saldo = 0)
-6. Actualiza estado_pago de la Venta (PENDIENTE → PARCIAL → PAGADO)
+6. Registra movimiento de caja (INGRESO) si hay sesión activa
 
 **Validaciones:**
 - Monto > 0
@@ -79,7 +79,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const postApiCuentasPorCobrarIdPagos = (
   id: number,
-  postApiCuentasPorCobrarIdPagosBody: PostApiCuentasPorCobrarIdPagosBody,
+  createPago: CreatePago,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
@@ -88,7 +88,7 @@ export const postApiCuentasPorCobrarIdPagos = (
       url: `/api/cuentas-por-cobrar/${id}/pagos`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      data: postApiCuentasPorCobrarIdPagosBody,
+      data: createPago,
       signal,
     },
     options,
@@ -109,14 +109,14 @@ export const getPostApiCuentasPorCobrarIdPagosMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>,
     TError,
-    { id: number; data: PostApiCuentasPorCobrarIdPagosBody },
+    { id: number; data: CreatePago },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>,
   TError,
-  { id: number; data: PostApiCuentasPorCobrarIdPagosBody },
+  { id: number; data: CreatePago },
   TContext
 > => {
   const mutationKey = ["postApiCuentasPorCobrarIdPagos"];
@@ -130,7 +130,7 @@ export const getPostApiCuentasPorCobrarIdPagosMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>,
-    { id: number; data: PostApiCuentasPorCobrarIdPagosBody }
+    { id: number; data: CreatePago }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -143,8 +143,7 @@ export const getPostApiCuentasPorCobrarIdPagosMutationOptions = <
 export type PostApiCuentasPorCobrarIdPagosMutationResult = NonNullable<
   Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>
 >;
-export type PostApiCuentasPorCobrarIdPagosMutationBody =
-  PostApiCuentasPorCobrarIdPagosBody;
+export type PostApiCuentasPorCobrarIdPagosMutationBody = CreatePago;
 export type PostApiCuentasPorCobrarIdPagosMutationError = ErrorType<
   | PostApiCuentasPorCobrarIdPagos400
   | PostApiCuentasPorCobrarIdPagos401
@@ -172,7 +171,7 @@ export const usePostApiCuentasPorCobrarIdPagos = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>,
       TError,
-      { id: number; data: PostApiCuentasPorCobrarIdPagosBody },
+      { id: number; data: CreatePago },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -181,7 +180,7 @@ export const usePostApiCuentasPorCobrarIdPagos = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof postApiCuentasPorCobrarIdPagos>>,
   TError,
-  { id: number; data: PostApiCuentasPorCobrarIdPagosBody },
+  { id: number; data: CreatePago },
   TContext
 > => {
   const mutationOptions =

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { usePostApiMarcas } from "@/api/generated/marcas/marcas";
 import type { Marca } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 const createMarcaSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -61,7 +62,7 @@ export default function CreateMarcaDialog({ onCreated, children }: CreateMarcaDi
       const payload: any = {
         nombre: values.nombre.trim(),
       };
-      
+
       const logoTrim = values.logo_url?.trim();
       if (logoTrim) payload.logo_url = logoTrim;
 
@@ -70,9 +71,8 @@ export default function CreateMarcaDialog({ onCreated, children }: CreateMarcaDi
       toast.success("Marca creada exitosamente");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "No se pudo crear la marca";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "No se pudo crear la marca"));
     }
   }
 

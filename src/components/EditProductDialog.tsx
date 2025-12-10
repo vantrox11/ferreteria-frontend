@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductForm from "@/components/ProductForm";
 import { toast } from "sonner";
@@ -18,12 +17,12 @@ import { useGetApiCategorias } from "@/api/generated/categorías/categorías";
 import { useGetApiMarcas } from "@/api/generated/marcas/marcas";
 import { useGetApiUnidadesMedida } from "@/api/generated/unidades-de-medida/unidades-de-medida";
 import { useGetApiTenantConfiguracionFiscal } from "@/api/generated/tenant/tenant";
-import { usePutApiProductosId } from "@/api/generated/productos/productos";
+import { usePutApiProductosId, getGetApiProductosQueryKey } from "@/api/generated/productos/productos";
 import type { Producto } from "@/api/generated/model";
-import { Pencil } from "lucide-react";
 import ImagePreview from "@/components/ImagePreview";
 import { useQueryClient } from "@tanstack/react-query";
 import { customInstance } from "@/api/mutator/custom-instance";
+import { getErrorMessage } from "@/lib/api-error";
 
 const editProductSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -62,7 +61,7 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const queryClient = useQueryClient();
-  
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageAction, setImageAction] = useState<"keep" | "delete" | "update">("keep");
 
@@ -112,7 +111,7 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
       unidad_medida_id: producto.unidad_medida_id,
       afectacion_igv: producto.afectacion_igv ?? "GRAVADO",
     });
-    
+
     // Reset imagen
     setImageFile(null);
     setImageAction("keep");
@@ -121,8 +120,8 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
   async function onSubmit(values: EditProductFormValues) {
     try {
       // Si el tenant es exonerado_regional (Amazonía), forzar INAFECTO
-      const afectacionFinal = configFiscal?.exonerado_regional 
-        ? "INAFECTO" 
+      const afectacionFinal = configFiscal?.exonerado_regional
+        ? "INAFECTO"
         : values.afectacion_igv;
 
       // NOTA: Según API v2, PUT /productos/{id} acepta todos los campos del producto
@@ -145,7 +144,7 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
       if (values.marca_id !== undefined) payload.marca_id = values.marca_id;
 
       const updated = await updateProducto({ id: producto.id!, data: payload });
-      
+
       // Manejar imagen según la acción
       if (imageAction === "delete" && producto.imagen_url) {
         // Eliminar imagen
@@ -163,7 +162,7 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
         try {
           const formData = new FormData();
           formData.append("imagen", imageFile);
-          
+
           await customInstance({
             url: `/api/productos/${producto.id}/upload-imagen`,
             method: "POST",
@@ -177,16 +176,15 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
           toast.warning("Producto actualizado, pero no se pudo subir la imagen");
         }
       }
-      
+
       // Invalidar queries para refrescar
-      queryClient.invalidateQueries({ queryKey: ['/api/productos'] });
-      
+      queryClient.invalidateQueries({ queryKey: getGetApiProductosQueryKey() });
+
       toast.success("Producto actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al actualizar el producto";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al actualizar el producto"));
     }
   }
 
@@ -218,11 +216,11 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
               }}
             />
 
-            <ProductForm 
-              form={form} 
-              onSubmit={onSubmit} 
-              submitLabel="Actualizar producto" 
-              categorias={categorias} 
+            <ProductForm
+              form={form}
+              onSubmit={onSubmit}
+              submitLabel="Actualizar producto"
+              categorias={categorias}
               categoriasLoading={categoriasLoading}
               marcas={marcas}
               marcasLoading={marcasLoading}

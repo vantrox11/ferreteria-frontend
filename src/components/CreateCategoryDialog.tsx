@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { usePostApiCategorias } from "@/api/generated/categorías/categorías";
 import type { Categoria } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 const createCategorySchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -67,7 +68,7 @@ export default function CreateCategoryDialog({ onCreated, children }: CreateCate
       toast.success("Categor\u00eda creada");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
+    } catch (error) {
       const message = err?.response?.data?.message || err?.message || "No se pudo crear la categor\u00eda";
       toast.error(message);
     }

@@ -44,12 +44,14 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 
 import { usePostApiNotasCredito } from "@/api/generated/notas-credito/notas-credito"
 import { useGetApiVentasIdSaldoNc } from "@/api/generated/ventas-pos/ventas-pos"
-import type { Venta } from "@/api/generated/model"
+import type { Venta, CreateNotaCreditoTipoNota } from "@/api/generated/model"
 import { toast } from "sonner"
 import { useCaja } from "@/context/CajaContext"
+import { getErrorMessage } from "@/lib/api-error"
 
 // Tipos de Nota de Crédito según SUNAT
 const tiposNotaCredito = [
@@ -97,16 +99,15 @@ export function ModalNotaCredito({
   const { currentSession } = useCaja()
 
   // Hook para consultar saldo disponible
-  const { data: saldoNCResponse } = useGetApiVentasIdSaldoNc(
-    venta?.id?.toString() || '0',
-    { 
-      query: { 
+  const { data: saldoNC } = useGetApiVentasIdSaldoNc(
+    venta?.id ?? 0,
+    {
+      query: {
         enabled: !!venta?.id && open,
         staleTime: 0,
-      } 
+      }
     }
   );
-  const saldoNC = saldoNCResponse?.data;
 
   const form = useForm<NotaCreditoForm>({
     resolver: zodResolver(notaCreditoSchema),
@@ -128,7 +129,7 @@ export function ModalNotaCredito({
   // Inicializar detalles cuando se abre el modal
   React.useEffect(() => {
     if (open && venta?.detalles) {
-      const detallesIniciales = venta.detalles.map((d: any) => ({
+      const detallesIniciales = venta.detalles.map((d) => ({
         producto_id: d.producto_id,
         cantidad: Number(d.cantidad),
         precio_unitario: Number(d.precio_unitario),
@@ -153,7 +154,7 @@ export function ModalNotaCredito({
       await crearNC({
         data: {
           venta_referencia_id: venta.id,
-          tipo_nota: data.tipo_nota as any,
+          tipo_nota: data.tipo_nota as CreateNotaCreditoTipoNota,
           motivo_sustento: data.motivo_sustento,
           devolver_stock: data.devolver_stock,
           devolver_efectivo: data.devolver_efectivo || false,
@@ -172,19 +173,19 @@ export function ModalNotaCredito({
 
       onOpenChange(false)
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Error al emitir NC", {
-        description: error?.response?.data?.message || error.message,
+        description: getErrorMessage(error, "No se pudo emitir la nota de crédito"),
       })
     }
   }
 
   const tipoNota = form.watch("tipo_nota")
   const devolverEfectivo = form.watch("devolver_efectivo")
-  const mostrarDevolverStock = 
-    tipoNota === "DEVOLUCION_TOTAL" || 
+  const mostrarDevolverStock =
+    tipoNota === "DEVOLUCION_TOTAL" ||
     tipoNota === "DEVOLUCION_PARCIAL"
-  
+
   // Validaciones de estado
   const esVentaContado = venta?.condicion_pago === 'CONTADO'
   const ventaAceptadaEnSunat = venta?.estado_sunat === 'ACEPTADO'
@@ -193,8 +194,9 @@ export function ModalNotaCredito({
   const debeValidarEfectivo = esVentaContado && devolverEfectivo && tiposQueReducenDeuda.includes(tipoNota)
 
   const calcularTotal = () => {
-    return fields.reduce((sum, field: any) => {
-      return sum + (field.cantidad * field.precio_unitario)
+    return fields.reduce((sum, field) => {
+      const f = field as { cantidad: number; precio_unitario: number }
+      return sum + (f.cantidad * f.precio_unitario)
     }, 0)
   }
 
@@ -217,13 +219,13 @@ export function ModalNotaCredito({
             )}
           </DialogTitle>
           <DialogDescription>
-            Venta: {venta.serie?.codigo}-{String(venta.numero_comprobante).padStart(6, "0")} | 
-            Total: S/ {Number(venta.total).toFixed(2)} | 
+            Venta: {venta.serie?.codigo}-{String(venta.numero_comprobante).padStart(6, "0")} |
+            Total: S/ {Number(venta.total).toFixed(2)} |
             Estado SUNAT: <span className={ventaAceptadaEnSunat ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
               {venta.estado_sunat || 'PENDIENTE'}
             </span>
           </DialogDescription>
-          
+
           {/* Alerta si la venta no está ACEPTADA */}
           {!ventaAceptadaEnSunat && (
             <div className="mt-3 p-4 rounded-lg bg-red-50 border-2 border-red-200">
@@ -249,22 +251,19 @@ export function ModalNotaCredito({
               <div className="space-y-4">
                 {/* Información de saldo disponible - MEJORADA */}
                 {ventaAceptadaEnSunat && saldoNC && (
-                  <div className={`p-4 rounded-lg border-2 ${
-                    saldoNC.puede_emitir_nc 
-                      ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300' 
-                      : 'bg-gradient-to-r from-red-50 to-red-100 border-red-300'
-                  }`}>
+                  <div className={`p-4 rounded-lg border-2 ${saldoNC.puede_emitir_nc
+                    ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300'
+                    : 'bg-gradient-to-r from-red-50 to-red-100 border-red-300'
+                    }`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <p className={`text-sm font-semibold mb-1 ${
-                          saldoNC.puede_emitir_nc ? 'text-blue-900' : 'text-red-900'
-                        }`}>
+                        <p className={`text-sm font-semibold mb-1 ${saldoNC.puede_emitir_nc ? 'text-blue-900' : 'text-red-900'
+                          }`}>
                           {saldoNC.puede_emitir_nc ? '💰 Saldo Disponible para NC' : '🚫 Sin Saldo Disponible'}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className={`text-3xl font-mono font-bold ${
-                            saldoNC.puede_emitir_nc ? 'text-blue-700' : 'text-red-700'
-                          }`}>
+                          <span className={`text-3xl font-mono font-bold ${saldoNC.puede_emitir_nc ? 'text-blue-700' : 'text-red-700'
+                            }`}>
                             S/ {saldoNC.saldo_disponible.toFixed(2)}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -272,7 +271,7 @@ export function ModalNotaCredito({
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Indicador visual de progreso */}
                       <div className="flex-shrink-0 w-16 h-16 relative">
                         <svg className="w-full h-full transform -rotate-90">
@@ -298,15 +297,14 @@ export function ModalNotaCredito({
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className={`text-xs font-bold ${
-                            saldoNC.puede_emitir_nc ? 'text-blue-700' : 'text-red-700'
-                          }`}>
+                          <span className={`text-xs font-bold ${saldoNC.puede_emitir_nc ? 'text-blue-700' : 'text-red-700'
+                            }`}>
                             {Math.round((saldoNC.saldo_disponible / saldoNC.total_venta) * 100)}%
                           </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Detalle de montos */}
                     <div className="mt-3 pt-3 border-t border-current/10 space-y-1">
                       <div className="flex justify-between text-xs">
@@ -322,7 +320,7 @@ export function ModalNotaCredito({
                         <span className="font-mono">S/ {saldoNC.saldo_disponible.toFixed(2)}</span>
                       </div>
                     </div>
-                    
+
                     {/* Mensaje de bloqueo */}
                     {!saldoNC.puede_emitir_nc && saldoNC.razon_bloqueo && (
                       <div className="mt-3 p-2 rounded bg-red-100 border border-red-200">
@@ -454,47 +452,48 @@ export function ModalNotaCredito({
                 <div>
                   <h3 className="text-sm font-medium mb-3">Productos a incluir en la NC</h3>
                   <div className="space-y-2">
-                    {fields.map((field: any, index) => (
-                      <div key={field.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{field.producto_nombre}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Precio: S/ {field.precio_unitario.toFixed(2)} | 
-                            Original: {field.cantidad_original} unid.
-                          </p>
+                    {fields.map((field, index) => {
+                      const f = field as { id: string; producto_id: number; cantidad: number; precio_unitario: number; producto_nombre: string; cantidad_original: number }
+                      return (
+                        <div key={f.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{f.producto_nombre}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Precio: S/ {f.precio_unitario.toFixed(2)} |
+                              Original: {f.cantidad_original} unid.
+                            </p>
+                          </div>
+                          <div className="w-24">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              min="0"
+                              max={f.cantidad_original}
+                              value={f.cantidad}
+                              onChange={(e) => {
+                                const newValue = Number(e.target.value)
+                                update(index, { ...f, cantidad: newValue })
+                              }}
+                              className={excedeDisponible ? 'border-red-500 bg-red-50' : ''}
+                            />
+                          </div>
+                          <div className="w-24 text-right font-mono text-sm">
+                            S/ {(f.cantidad * f.precio_unitario).toFixed(2)}
+                          </div>
                         </div>
-                        <div className="w-24">
-                          <Input
-                            type="number"
-                            step="0.001"
-                            min="0"
-                            max={field.cantidad_original}
-                            value={field.cantidad}
-                            onChange={(e) => {
-                              const newValue = Number(e.target.value)
-                              update(index, { ...field, cantidad: newValue })
-                            }}
-                            className={excedeDisponible ? 'border-red-500 bg-red-50' : ''}
-                          />
-                        </div>
-                        <div className="w-24 text-right font-mono text-sm">
-                          S/ {(field.cantidad * field.precio_unitario).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
 
                   {/* Total y validación */}
-                  <div className={`mt-3 p-3 rounded-md border ${
-                    excedeDisponible 
-                      ? 'bg-red-50 border-red-300' 
-                      : 'bg-muted/30 border-muted'
-                  }`}>
+                  <div className={`mt-3 p-3 rounded-md border ${excedeDisponible
+                    ? 'bg-red-50 border-red-300'
+                    : 'bg-muted/30 border-muted'
+                    }`}>
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">Total de la NC:</span>
-                      <span className={`font-mono font-bold text-lg ${
-                        excedeDisponible ? 'text-red-700' : ''
-                      }`}>
+                      <span className={`font-mono font-bold text-lg ${excedeDisponible ? 'text-red-700' : ''
+                        }`}>
                         S/ {totalCalculado.toFixed(2)}
                       </span>
                     </div>
@@ -516,12 +515,12 @@ export function ModalNotaCredito({
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={
-                  isPending || 
-                  excedeDisponible || 
-                  !ventaAceptadaEnSunat || 
+                  isPending ||
+                  excedeDisponible ||
+                  !ventaAceptadaEnSunat ||
                   (debeValidarEfectivo && !haySesionCajaAbierta) ||
                   (saldoNC !== undefined && saldoNC.puede_emitir_nc === false)
                 }

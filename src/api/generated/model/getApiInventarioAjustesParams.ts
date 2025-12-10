@@ -24,7 +24,7 @@ export type GetApiInventarioAjustesParams = {
    */
   producto_id?: number;
   /**
-   * Filtrar por tipo de ajuste
+   * Filtrar por tipo de movimiento
    */
   tipo?: GetApiInventarioAjustesTipo;
   /**

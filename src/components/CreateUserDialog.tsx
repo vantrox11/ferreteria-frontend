@@ -16,16 +16,15 @@ import { Plus } from "lucide-react";
 import UserForm from "@/components/UserForm";
 import { toast } from "sonner";
 import { usePostApiUsuarios } from "@/api/generated/usuarios/usuarios";
-import type { Usuario } from "@/api/generated/model";
+import type { Usuario, UsuarioRol } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
-
-type RolUsuario = "admin" | "empleado";
+import { getErrorMessage } from "@/lib/api-error";
 
 type UsuarioCreateInput = {
   email: string;
   password: string;
   nombre?: string;
-  rol: RolUsuario;
+  rol: UsuarioRol;
 };
 
 const createUserSchema = z.object({
@@ -39,8 +38,8 @@ const createUserSchema = z.object({
   password: z
     .string()
     .min(1, "La contraseña es obligatoria")
-    .min(6, "Debe tener al menos 6 caracteres"),
-  rol: z.enum(["admin", "empleado"] as [RolUsuario, RolUsuario]),
+    .min(8, "Debe tener al menos 8 caracteres"),
+  rol: z.enum(["admin", "empleado"] as [UsuarioRol, UsuarioRol]),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -80,9 +79,8 @@ export default function CreateUserDialog({ onCreated }: CreateUserDialogProps) {
       toast.success("Usuario creado correctamente");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el usuario";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al crear el usuario"));
     }
   }
 
@@ -90,7 +88,7 @@ export default function CreateUserDialog({ onCreated }: CreateUserDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-<Plus className="mr-2 size-4" /> Crear Usuario
+          <Plus className="mr-2 size-4" /> Crear Usuario
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] p-0">

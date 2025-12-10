@@ -23,7 +23,7 @@ export interface ListInventarioAjustesQuery {
    * Filtrar por ID de producto
    */
   producto_id?: number;
-  /** Filtrar por tipo de ajuste */
+  /** Filtrar por tipo de movimiento */
   tipo?: ListInventarioAjustesQueryTipo;
   /** Fecha de inicio del rango (ISO 8601) */
   fecha_inicio?: string;

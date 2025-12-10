@@ -10,13 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CategoryForm from "@/components/CategoryForm";
 import { toast } from "sonner";
 import { usePutApiCategoriasId } from "@/api/generated/categorías/categorías";
 import type { Categoria } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 type CategoriaUpdateInput = {
   nombre?: string;
@@ -76,9 +76,8 @@ export default function EditCategoryDialog({ categoria, onUpdated, children, ope
       toast.success("Categor\u00eda actualizada");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "No se pudo actualizar";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "No se pudo actualizar la categoría"));
     }
   }
 

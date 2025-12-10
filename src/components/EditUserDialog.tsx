@@ -10,19 +10,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UserForm from "@/components/UserForm";
 import { toast } from "sonner";
 import { usePutApiUsuariosId } from "@/api/generated/usuarios/usuarios";
-import type { Usuario, RolUsuario } from "@/api/generated/model";
+import type { Usuario, UsuarioRol } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 type UsuarioUpdateInput = {
   email?: string;
   password?: string;
   nombre?: string;
-  rol?: RolUsuario;
+  rol?: UsuarioRol;
 };
 
 const editUserSchema = z.object({
@@ -38,10 +38,10 @@ const editUserSchema = z.object({
     .trim()
     .optional()
     .or(z.literal(""))
-    .refine((val) => val === undefined || val === "" || val.length >= 6, {
-      message: "Debe tener al menos 6 caracteres",
+    .refine((val) => val === undefined || val === "" || val.length >= 8, {
+      message: "Debe tener al menos 8 caracteres",
     }),
-  rol: z.enum(["admin", "empleado"] as [RolUsuario, RolUsuario]),
+  rol: z.enum(["admin", "empleado"] as [UsuarioRol, UsuarioRol]),
 });
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;
@@ -110,9 +110,8 @@ export default function EditUserDialog({ usuario, onUpdated, children, open: con
       toast.success("Usuario actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al actualizar el usuario";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al actualizar el usuario"));
     }
   }
 

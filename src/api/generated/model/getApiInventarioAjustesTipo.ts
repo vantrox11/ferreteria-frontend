@@ -22,6 +22,6 @@ export type GetApiInventarioAjustesTipo =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiInventarioAjustesTipo = {
-  entrada: "entrada",
-  salida: "salida",
+  ENTRADA_AJUSTE: "ENTRADA_AJUSTE",
+  SALIDA_AJUSTE: "SALIDA_AJUSTE",
 } as const;

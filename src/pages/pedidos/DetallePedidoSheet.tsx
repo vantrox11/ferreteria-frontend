@@ -70,8 +70,8 @@ export default function DetallePedidoSheet({
         });
 
         setDetallesConPrecios(detalles);
-      } catch (err: any) {
-        if (err?.name !== "AbortError") console.error(err);
+      } catch (error) {
+        if (error instanceof Error && error.name !== "AbortError") console.error(error);
       }
     })();
 
@@ -122,24 +122,24 @@ export default function DetallePedidoSheet({
                 <p className="font-medium capitalize">{pedido.tipo_recojo}</p>
               </div>
               <div>
-  <p className="text-muted-foreground">Estado</p>
+                <p className="text-muted-foreground">Estado</p>
 
-  <Badge
-    variant={
-      pedido.estado === "pendiente" ? "secondary" :
-      pedido.estado === "confirmado" ? "default" :
-      pedido.estado === "cancelado" ? "destructive" :
-      "secondary"
-    }
-    className={
-      pedido.estado === "entregado" 
-        ? "bg-blue-500 text-white dark:bg-blue-600 capitalize" 
-        : "capitalize"
-    }
-  >
-    {pedido.estado}
-  </Badge>
-</div>
+                <Badge
+                  variant={
+                    pedido.estado === "pendiente" ? "secondary" :
+                      pedido.estado === "confirmado" ? "default" :
+                        pedido.estado === "cancelado" ? "destructive" :
+                          "secondary"
+                  }
+                  className={
+                    pedido.estado === "entregado"
+                      ? "bg-blue-500 text-white dark:bg-blue-600 capitalize"
+                      : "capitalize"
+                  }
+                >
+                  {pedido.estado}
+                </Badge>
+              </div>
 
             </div>
 
@@ -183,7 +183,7 @@ export default function DetallePedidoSheet({
 
             <Separator />
 
-            
+
           </div>
         )}
       </SheetContent>

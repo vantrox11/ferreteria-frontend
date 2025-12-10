@@ -13,22 +13,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
 import type { Producto } from "@/api/generated/model"
+import { formatCurrency } from "@/lib/utils"
 
-// Utilidad para formatear moneda
-function formatCurrency(value: string | number | null | undefined) {
-  if (value === null || value === undefined) return "—"
-  const num = typeof value === "string" ? Number(value) : value
-  if (Number.isNaN(num)) return String(value)
-  return new Intl.NumberFormat("es-PE", {
-    style: "currency",
-    currency: "PEN",
-    minimumFractionDigits: 2,
-  }).format(num)
-}
 
 // Utilidad para formatear stock según la unidad de medida
 function formatStock(producto: Producto) {
-  // @ts-ignore - El backend incluye la relación unidad_medida
   const unidad = producto.unidad_medida
   const stock = producto.stock ?? 0
 
@@ -87,10 +76,9 @@ export function createColumns(actions: Omit<ColumnActionsProps, 'producto' | 'is
         <DataTableColumnHeader column={column} title="Categoría" />
       ),
       cell: ({ row }) => {
-        // @ts-ignore - El backend incluye la relación categoria
         const categoria = row.original.categoria
         if (!categoria) return <span className="text-muted-foreground">—</span>
-        
+
         return (
           <Badge variant="outline" className="font-normal">
             {categoria.nombre}
@@ -104,10 +92,9 @@ export function createColumns(actions: Omit<ColumnActionsProps, 'producto' | 'is
         <DataTableColumnHeader column={column} title="Marca" />
       ),
       cell: ({ row }) => {
-        // @ts-ignore - El backend incluye la relación marca
         const marca = row.original.marca
         if (!marca) return <span className="text-muted-foreground">—</span>
-        
+
         return (
           <span className="text-sm text-muted-foreground">{marca.nombre}</span>
         )

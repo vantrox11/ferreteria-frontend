@@ -18,7 +18,6 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 import type { CreateMovimientoCajaTipo } from "./createMovimientoCajaTipo";
 import type { CreateMovimientoCajaMonto } from "./createMovimientoCajaMonto";
-import type { CreateMovimientoCajaReferenciaTipo } from "./createMovimientoCajaReferenciaTipo";
 
 export interface CreateMovimientoCaja {
   /** Tipo de movimiento */
@@ -31,11 +30,16 @@ export interface CreateMovimientoCaja {
    * @maxLength 255
    */
   descripcion: string;
-  /** Tipo de documento que origina el movimiento (opcional) */
-  referencia_tipo?: CreateMovimientoCajaReferenciaTipo;
   /**
-   * ID del documento referenciado (opcional)
-   * @maxLength 50
+   * ID de la venta asociada (opcional)
    */
-  referencia_id?: string;
+  venta_id?: number;
+  /**
+   * ID de la nota de crédito asociada (opcional)
+   */
+  nota_credito_id?: number;
+  /**
+   * ID del pago asociado (opcional)
+   */
+  pago_id?: number;
 }

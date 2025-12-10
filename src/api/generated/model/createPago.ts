@@ -16,23 +16,26 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
+import type { CreatePagoMonto } from "./createPagoMonto";
 import type { CreatePagoMetodoPago } from "./createPagoMetodoPago";
 
 export interface CreatePago {
-  /**
-   * Monto del pago a registrar
-   */
-  monto: number;
+  /** Monto del pago (máximo 2 decimales) */
+  monto: CreatePagoMonto;
   /** Método de pago utilizado */
   metodo_pago: CreatePagoMetodoPago;
   /**
-   * Número de operación, voucher u otro comprobante (opcional)
-   * @maxLength 255
+   * Número de operación, voucher, o referencia del pago
+   * @maxLength 100
    */
   referencia?: string;
   /**
-   * Observaciones adicionales del pago
+   * Notas adicionales sobre el pago
    * @maxLength 500
    */
   notas?: string;
+  /**
+   * ID de la sesión de caja para registrar el ingreso automático (opcional)
+   */
+  sesion_caja_id?: number;
 }

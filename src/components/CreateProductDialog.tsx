@@ -23,15 +23,16 @@ import { usePostApiProductos } from "@/api/generated/productos/productos";
 import type { Producto } from "@/api/generated/model";
 import ImagePreview from "@/components/ImagePreview";
 import { customInstance } from "@/api/mutator/custom-instance";
+import { getErrorMessage } from "@/lib/api-error";
 
 const createProductSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
   imagen: z
-  .instanceof(File)
-  .optional()
-  .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
-    message: "La imagen debe ser menor a 5MB",
-  }),
+    .instanceof(File)
+    .optional()
+    .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
+      message: "La imagen debe ser menor a 5MB",
+    }),
   sku: z
     .string()
     .trim()
@@ -108,8 +109,8 @@ export default function CreateProductDialog({ onCreated, children }: CreateProdu
   async function onSubmit(values: CreateProductFormValues) {
     try {
       // Si el tenant es exonerado_regional (Amazonía), forzar INAFECTO
-      const afectacionFinal = configFiscal?.exonerado_regional 
-        ? "INAFECTO" 
+      const afectacionFinal = configFiscal?.exonerado_regional
+        ? "INAFECTO"
         : values.afectacion_igv;
 
       const payload: any = {
@@ -132,13 +133,13 @@ export default function CreateProductDialog({ onCreated, children }: CreateProdu
       if (values.marca_id !== undefined) payload.marca_id = values.marca_id;
 
       const created = await createProducto({ data: payload });
-      
+
       // Si hay imagen seleccionada, subirla después de crear el producto
       if (selectedImage) {
         try {
           const formData = new FormData();
           formData.append("imagen", selectedImage);
-          
+
           await customInstance({
             url: `/api/productos/${created.id}/upload-imagen`,
             method: "POST",
@@ -153,13 +154,12 @@ export default function CreateProductDialog({ onCreated, children }: CreateProdu
           toast.warning("Producto creado, pero no se pudo subir la imagen");
         }
       }
-      
+
       toast.success("Producto creado correctamente");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el producto";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al crear el producto"));
     }
   }
 
@@ -189,11 +189,11 @@ export default function CreateProductDialog({ onCreated, children }: CreateProdu
               onChange={(file) => setSelectedImage(file)}
             />
 
-            <ProductForm 
-              form={form} 
-              onSubmit={onSubmit} 
-              submitLabel="Crear producto" 
-              categorias={categorias} 
+            <ProductForm
+              form={form}
+              onSubmit={onSubmit}
+              submitLabel="Crear producto"
+              categorias={categorias}
               categoriasLoading={categoriasLoading}
               marcas={marcas}
               marcasLoading={marcasLoading}

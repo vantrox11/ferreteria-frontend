@@ -10,13 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProviderForm from "@/components/ProviderForm";
 import { toast } from "sonner";
 import { usePutApiProveedoresId } from "@/api/generated/proveedores/proveedores";
 import type { Proveedor } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 type ProveedorUpdateInput = {
   nombre?: string;
@@ -117,9 +117,8 @@ export default function EditProviderDialog({ proveedor, onUpdated, children, ope
       toast.success("Proveedor actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al actualizar el proveedor";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al actualizar el proveedor"));
     }
   }
 

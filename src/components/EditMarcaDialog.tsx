@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { usePutApiMarcasId } from "@/api/generated/marcas/marcas";
 import type { Marca } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 const updateMarcaSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -55,9 +56,9 @@ export default function EditMarcaDialog({ marca, onUpdated, children, open: cont
 
   useEffect(() => {
     if (open) {
-      form.reset({ 
-        nombre: marca.nombre, 
-        logo_url: marca.logo_url ?? "" 
+      form.reset({
+        nombre: marca.nombre,
+        logo_url: marca.logo_url ?? ""
       });
     }
   }, [open, marca, form]);
@@ -76,9 +77,8 @@ export default function EditMarcaDialog({ marca, onUpdated, children, open: cont
       toast.success("Marca actualizada exitosamente");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "No se pudo actualizar";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "No se pudo actualizar la marca"));
     }
   }
 

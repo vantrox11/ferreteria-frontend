@@ -30,6 +30,6 @@ export const CreatePagoMetodoPago = {
   TRANSFERENCIA: "TRANSFERENCIA",
   YAPE: "YAPE",
   PLIN: "PLIN",
-  DEPOSITO: "DEPOSITO",
   CHEQUE: "CHEQUE",
+  OTROS: "OTROS",
 } as const;

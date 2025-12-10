@@ -21,7 +21,7 @@ import type { CuentaPorCobrarFechaUltimoPago } from "./cuentaPorCobrarFechaUltim
 import type { CuentaPorCobrarNotas } from "./cuentaPorCobrarNotas";
 import type { CuentaPorCobrarVenta } from "./cuentaPorCobrarVenta";
 import type { CuentaPorCobrarCliente } from "./cuentaPorCobrarCliente";
-import type { Pago } from "./pago";
+import type { CuentaPorCobrarPagosItem } from "./cuentaPorCobrarPagosItem";
 
 export interface CuentaPorCobrar {
   /** ID único de la cuenta */
@@ -52,5 +52,5 @@ export interface CuentaPorCobrar {
   /** Datos del cliente deudor */
   cliente?: CuentaPorCobrarCliente;
   /** Historial de pagos realizados */
-  pagos?: Pago[];
+  pagos?: CuentaPorCobrarPagosItem[];
 }

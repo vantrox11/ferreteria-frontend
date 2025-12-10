@@ -53,9 +53,10 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 import { usePostApiGuiasRemision } from "@/api/generated/guias-remision/guias-remision"
-import type { Venta } from "@/api/generated/model"
+import type { Venta, CreateGuiaRemisionMotivoTraslado } from "@/api/generated/model"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { getErrorMessage } from "@/lib/api-error"
 
 // Motivos de traslado según SUNAT
 const motivosTraslado = [
@@ -69,32 +70,32 @@ const motivosTraslado = [
 const guiaRemisionSchema = z.object({
   motivo_traslado: z.string().min(1, "Selecciona un motivo"),
   descripcion_motivo: z.string().max(500, "Máximo 500 caracteres").optional(),
-  
+
   // Datos de carga
   peso_bruto_total: z.number().min(0.001, "Peso debe ser mayor a 0"),
   numero_bultos: z.number().int().min(1, "Mínimo 1 bulto"),
-  
+
   // Puntos
   direccion_partida: z.string().min(10, "Mínimo 10 caracteres"),
   ubigeo_partida: z.string().optional(),
   direccion_llegada: z.string().min(10, "Mínimo 10 caracteres"),
   ubigeo_llegada: z.string().optional(),
-  
+
   // Transporte
   modalidad_transporte: z.enum(["PRIVADO", "PUBLICO"]),
-  
+
   // PUBLICO
   ruc_transportista: z.string().optional(),
   razon_social_transportista: z.string().optional(),
-  
+
   // PRIVADO
   placa_vehiculo: z.string().optional(),
   licencia_conducir: z.string().optional(),
   nombre_conductor: z.string().optional(),
-  
+
   // Fecha
   fecha_inicio_traslado: z.date({ required_error: "Selecciona una fecha" }),
-  
+
   // Detalles
   detalles: z.array(
     z.object({
@@ -171,17 +172,17 @@ export function ModalGuiaRemision({
   // Inicializar detalles cuando se abre el modal con una venta
   React.useEffect(() => {
     if (open && venta?.detalles) {
-      const detallesIniciales = venta.detalles.map((d: any) => ({
+      const detallesIniciales = venta.detalles.map((d) => ({
         producto_id: d.producto_id,
         cantidad: Number(d.cantidad),
         producto_nombre: d.producto?.nombre || `Producto ${d.producto_id}`,
         producto_unidad: d.producto?.unidad_medida?.codigo || "UND",
         cantidad_original: Number(d.cantidad),
       }))
-      
+
       form.reset({
         motivo_traslado: "VENTA",
-        descripcion_motivo: venta.serie && venta.numero_comprobante 
+        descripcion_motivo: venta.serie && venta.numero_comprobante
           ? `Traslado por venta ${venta.serie.codigo}-${String(venta.numero_comprobante).padStart(6, "0")}`
           : "",
         peso_bruto_total: 1,
@@ -210,7 +211,7 @@ export function ModalGuiaRemision({
       await crearGRE({
         data: {
           venta_id: venta?.id,
-          motivo_traslado: data.motivo_traslado as any,
+          motivo_traslado: data.motivo_traslado as CreateGuiaRemisionMotivoTraslado,
           descripcion_motivo: data.descripcion_motivo,
           peso_bruto_total: data.peso_bruto_total,
           numero_bultos: data.numero_bultos,
@@ -238,9 +239,9 @@ export function ModalGuiaRemision({
 
       onOpenChange(false)
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Error al emitir GRE", {
-        description: error?.response?.data?.message || error.message,
+        description: getErrorMessage(error, "No se pudo emitir la guía de remisión"),
       })
     }
   }
@@ -254,7 +255,7 @@ export function ModalGuiaRemision({
             Emitir Guía de Remisión Electrónica
           </DialogTitle>
           <DialogDescription>
-            {venta 
+            {venta
               ? `Basada en venta: ${venta.serie?.codigo}-${String(venta.numero_comprobante).padStart(6, "0")}`
               : "Traslado sin venta asociada"
             }
@@ -268,7 +269,7 @@ export function ModalGuiaRemision({
                 {/* Motivo de Traslado */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-sm">📋 Motivo del Traslado</h3>
-                  
+
                   <FormField
                     control={form.control}
                     name="motivo_traslado"
@@ -321,7 +322,7 @@ export function ModalGuiaRemision({
                 {/* Datos de Carga */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-sm">📦 Datos de Carga</h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -374,7 +375,7 @@ export function ModalGuiaRemision({
                     <MapPin className="h-4 w-4" />
                     Puntos de Partida y Llegada
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-4">
                       <FormField
@@ -460,7 +461,7 @@ export function ModalGuiaRemision({
                     <Calendar className="h-4 w-4" />
                     Fecha de Traslado
                   </h3>
-                  
+
                   <FormField
                     control={form.control}
                     name="fecha_inicio_traslado"
@@ -515,7 +516,7 @@ export function ModalGuiaRemision({
                     <Truck className="h-4 w-4" />
                     Datos del Transporte
                   </h3>
-                  
+
                   <FormField
                     control={form.control}
                     name="modalidad_transporte"
@@ -551,7 +552,7 @@ export function ModalGuiaRemision({
                   {modalidadTransporte === "PRIVADO" && (
                     <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                       <p className="text-sm text-muted-foreground">Datos del vehículo y conductor</p>
-                      
+
                       <FormField
                         control={form.control}
                         name="placa_vehiculo"
@@ -602,7 +603,7 @@ export function ModalGuiaRemision({
                   {modalidadTransporte === "PUBLICO" && (
                     <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                       <p className="text-sm text-muted-foreground">Datos de la empresa transportista</p>
-                      
+
                       <FormField
                         control={form.control}
                         name="ruc_transportista"
@@ -639,39 +640,42 @@ export function ModalGuiaRemision({
                 {/* Productos */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-sm">📦 Productos a Trasladar</h3>
-                  
+
                   {fields.length === 0 ? (
                     <div className="p-4 border rounded-lg bg-muted/30 text-center text-sm text-muted-foreground">
                       No hay productos. Vincula esta guía a una venta o agrégalos manualmente.
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {fields.map((field: any, index) => (
-                        <div key={field.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{field.producto_nombre}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Unidad: {field.producto_unidad} | Original: {field.cantidad_original}
-                            </p>
+                      {fields.map((field, index) => {
+                        const f = field as { id: string; producto_id: number; cantidad: number; producto_nombre: string; producto_unidad: string; cantidad_original: number }
+                        return (
+                          <div key={f.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{f.producto_nombre}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Unidad: {f.producto_unidad} | Original: {f.cantidad_original}
+                              </p>
+                            </div>
+                            <div className="w-28">
+                              <Input
+                                type="number"
+                                step="0.001"
+                                min="0"
+                                max={f.cantidad_original}
+                                value={f.cantidad}
+                                onChange={(e) => {
+                                  const newValue = Number(e.target.value)
+                                  update(index, { ...f, cantidad: newValue })
+                                }}
+                              />
+                            </div>
+                            <div className="w-20 text-right text-sm font-mono">
+                              {f.cantidad} {f.producto_unidad}
+                            </div>
                           </div>
-                          <div className="w-28">
-                            <Input
-                              type="number"
-                              step="0.001"
-                              min="0"
-                              max={field.cantidad_original}
-                              value={field.cantidad}
-                              onChange={(e) => {
-                                const newValue = Number(e.target.value)
-                                update(index, { ...field, cantidad: newValue })
-                              }}
-                            />
-                          </div>
-                          <div className="w-20 text-right text-sm font-mono">
-                            {field.cantidad} {field.producto_unidad}
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
@@ -695,6 +699,6 @@ export function ModalGuiaRemision({
           </form>
         </Form>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   )
 }

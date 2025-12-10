@@ -10,13 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ClientForm from "@/components/ClientForm";
 import { toast } from "sonner";
 import { usePutApiClientesId } from "@/api/generated/clientes/clientes";
 import type { Cliente } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 type ClienteUpdateInput = {
   nombre: string;
@@ -181,9 +181,8 @@ export default function EditClientDialog({ cliente, onUpdated, children, open: c
       toast.success("Cliente actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al actualizar el cliente";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al actualizar el cliente"));
     }
   }
 

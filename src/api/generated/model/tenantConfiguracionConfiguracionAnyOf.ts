@@ -19,12 +19,15 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 import type { TenantConfiguracionConfiguracionAnyOfPedidos } from "./tenantConfiguracionConfiguracionAnyOfPedidos";
 import type { TenantConfiguracionConfiguracionAnyOfEmails } from "./tenantConfiguracionConfiguracionAnyOfEmails";
 import type { TenantConfiguracionConfiguracionAnyOfFacturacion } from "./tenantConfiguracionConfiguracionAnyOfFacturacion";
+import type { TenantConfiguracionConfiguracionAnyOfEmpresa } from "./tenantConfiguracionConfiguracionAnyOfEmpresa";
 
 /**
- * Configuración general del tenant (pedidos, emails, facturación)
+ * Configuración general del tenant (pedidos, emails, facturación, empresa)
  */
 export type TenantConfiguracionConfiguracionAnyOf = {
   pedidos?: TenantConfiguracionConfiguracionAnyOfPedidos;
   emails?: TenantConfiguracionConfiguracionAnyOfEmails;
   facturacion?: TenantConfiguracionConfiguracionAnyOfFacturacion;
+  /** Datos de la empresa para comprobantes */
+  empresa?: TenantConfiguracionConfiguracionAnyOfEmpresa;
 };

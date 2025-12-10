@@ -16,19 +16,22 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { InventarioAjusteTipo } from "./inventarioAjusteTipo";
-import type { InventarioAjusteUsuarioId } from "./inventarioAjusteUsuarioId";
+import type { InventarioAjusteTipoMovimiento } from "./inventarioAjusteTipoMovimiento";
+import type { InventarioAjusteMotivo } from "./inventarioAjusteMotivo";
+import type { InventarioAjusteProducto } from "./inventarioAjusteProducto";
+import type { InventarioAjusteUsuario } from "./inventarioAjusteUsuario";
 
 export interface InventarioAjuste {
   /** ID único del ajuste */
   id: number;
-  producto_id: number;
-  tipo: InventarioAjusteTipo;
+  /** Tipo de movimiento: ENTRADA_AJUSTE o SALIDA_AJUSTE */
+  tipo_movimiento: InventarioAjusteTipoMovimiento;
   cantidad: number;
-  motivo: string;
-  /** ID del usuario que realizó el ajuste */
-  usuario_id: InventarioAjusteUsuarioId;
-  tenant_id: number;
+  motivo: InventarioAjusteMotivo;
   /** Fecha de creación del ajuste */
   created_at: string;
+  /** Información del producto ajustado */
+  producto: InventarioAjusteProducto;
+  /** Usuario que realizó el ajuste */
+  usuario: InventarioAjusteUsuario;
 }

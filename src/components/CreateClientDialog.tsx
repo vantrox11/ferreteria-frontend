@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { usePostApiClientes } from "@/api/generated/clientes/clientes";
 import type { Cliente } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 const createClientSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio").max(200, "Máximo 200 caracteres"),
@@ -115,13 +116,13 @@ export default function CreateClientDialog({ onCreated, children }: CreateClient
 
   const form = useForm<CreateClientFormValues>({
     resolver: zodResolver(createClientSchema),
-    defaultValues: { 
-      nombre: "", 
-      documento_identidad: "", 
-      ruc: "", 
-      razon_social: "", 
-      email: "", 
-      telefono: "", 
+    defaultValues: {
+      nombre: "",
+      documento_identidad: "",
+      ruc: "",
+      razon_social: "",
+      email: "",
+      telefono: "",
       direccion: "",
       habilitar_credito: false,
       limite_credito: undefined,
@@ -132,13 +133,13 @@ export default function CreateClientDialog({ onCreated, children }: CreateClient
 
   useEffect(() => {
     if (!open) {
-      form.reset({ 
-        nombre: "", 
-        documento_identidad: "", 
-        ruc: "", 
-        razon_social: "", 
-        email: "", 
-        telefono: "", 
+      form.reset({
+        nombre: "",
+        documento_identidad: "",
+        ruc: "",
+        razon_social: "",
+        email: "",
+        telefono: "",
         direccion: "",
         habilitar_credito: false,
         limite_credito: undefined,
@@ -166,9 +167,8 @@ export default function CreateClientDialog({ onCreated, children }: CreateClient
       toast.success("Cliente creado correctamente");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el cliente";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al crear el cliente"));
     }
   }
 
@@ -179,7 +179,7 @@ export default function CreateClientDialog({ onCreated, children }: CreateClient
           children
         ) : (
           <Button>
-<Plus className="mr-2 size-4" /> Crear Cliente
+            <Plus className="mr-2 size-4" /> Crear Cliente
           </Button>
         )}
       </DialogTrigger>

@@ -14,8 +14,10 @@ import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { useAuth } from "@/auth/AuthContext"
-import { useGetApiProductos, usePatchApiProductosIdDesactivar } from "@/api/generated/productos/productos"
+import { useGetApiProductos, usePatchApiProductosIdDesactivar, getGetApiProductosQueryKey } from "@/api/generated/productos/productos"
 import type { Producto } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
+import { formatCurrency } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -55,18 +57,6 @@ import {
 
 import CreateProductDialog from "@/components/CreateProductDialog"
 import EditProductDialog from "@/components/EditProductDialog"
-
-// Utilidad para formatear moneda
-function formatCurrency(value: string | number | null | undefined) {
-  if (value === null || value === undefined) return "—"
-  const num = typeof value === "string" ? Number(value) : value
-  if (Number.isNaN(num)) return String(value)
-  return new Intl.NumberFormat("es-PE", {
-    style: "currency",
-    currency: "PEN",
-    minimumFractionDigits: 2,
-  }).format(num)
-}
 
 export default function ProductosPageV2() {
   const queryClient = useQueryClient()
@@ -114,14 +104,13 @@ export default function ProductosPageV2() {
   const desactivarMutation = usePatchApiProductosIdDesactivar({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["/api/productos"] })
+        queryClient.invalidateQueries({ queryKey: getGetApiProductosQueryKey() })
         toast.success("Producto desactivado")
         setDeactivateOpen(false)
         setConfirmProducto(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (error) => {
+        toast.error(getErrorMessage(error, "No se pudo desactivar el producto"))
       },
     },
   })
@@ -151,7 +140,7 @@ export default function ProductosPageV2() {
         enableSorting: false,
         enableHiding: false,
       },
-     
+
       {
         accessorKey: "nombre",
         header: ({ column }) => {
@@ -198,7 +187,6 @@ export default function ProductosPageV2() {
         id: "marca",
         header: "Marca",
         cell: ({ row }) => {
-          // @ts-ignore
           return row.original.marca?.nombre || "—"
         },
         enableSorting: false,
@@ -207,7 +195,6 @@ export default function ProductosPageV2() {
         id: "categoria",
         header: "Categoría",
         cell: ({ row }) => {
-          // @ts-ignore
           return row.original.categoria?.nombre || "—"
         },
         enableSorting: false,
@@ -221,7 +208,6 @@ export default function ProductosPageV2() {
         accessorKey: "stock",
         header: "Stock",
         cell: ({ row }) => {
-          // @ts-ignore
           const unidad = row.original.unidad_medida
           const stock = row.original.stock ?? 0
 
@@ -355,7 +341,6 @@ export default function ProductosPageV2() {
   const categoryMap = new Map<number, string>()
   for (const p of productos) {
     if (p.categoria_id != null) {
-      // @ts-ignore
       categoryMap.set(Number(p.categoria_id), p.categoria?.nombre || `#${p.categoria_id}`)
     }
   }
@@ -368,7 +353,7 @@ export default function ProductosPageV2() {
         <h1 className="text-2xl font-semibold">Productos</h1>
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
           <p className="text-sm text-destructive">
-            Error al cargar productos: {error instanceof Error ? error.message : "Error desconocido"}
+            Error al cargar productos: {getErrorMessage(error, "Error desconocido")}
           </p>
         </div>
       </div>
@@ -383,7 +368,7 @@ export default function ProductosPageV2() {
         <div className="flex items-center gap-2">
           <CreateProductDialog
             onCreated={() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/productos"] })
+              queryClient.invalidateQueries({ queryKey: getGetApiProductosQueryKey() })
             }}
           />
         </div>
@@ -392,7 +377,7 @@ export default function ProductosPageV2() {
       {/* Mensaje de Error */}
       {error && (
         <div className="text-sm text-red-600" aria-live="assertive">
-          {error instanceof Error ? error.message : "Error al cargar productos"}
+          {getErrorMessage(error, "Error al cargar productos")}
         </div>
       )}
 
@@ -432,10 +417,10 @@ export default function ProductosPageV2() {
                         val === "in_stock"
                           ? "Con stock"
                           : val === "out_of_stock"
-                          ? "Sin stock"
-                          : val === "low_stock"
-                          ? "Bajo stock"
-                          : "Todos"
+                            ? "Sin stock"
+                            : val === "low_stock"
+                              ? "Bajo stock"
+                              : "Todos"
                       return (
                         <Button variant="outline" className="h-9">
                           Estado: {label}

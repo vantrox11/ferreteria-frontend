@@ -115,11 +115,21 @@ function getEstadoBadge(estado: string) {
 // Badge de tipo de venta (Contado vs Crédito)
 function getTipoVentaBadge(venta: Venta) {
   // ✅ Usar condicion_pago (CONTADO/CREDITO), NO metodo_pago (EFECTIVO/TARJETA)
-  const esCredito = venta.condicion_pago?.toUpperCase() === "CREDITO" || !!(venta as any).cuenta_por_cobrar
-  
+  const esCredito = venta.condicion_pago?.toUpperCase() === "CREDITO" || !!venta.cuenta_por_cobrar
+
   if (esCredito) {
-    const estadoPago = venta.estado_pago || "PAGADO"
-    
+    // Obtener estado del pago desde cuenta_por_cobrar
+    const cxc = venta.cuenta_por_cobrar
+    // Determinar el estado del pago basado en saldos
+    let estadoPago = "PENDIENTE"
+    if (cxc) {
+      if (cxc.estado === "PAGADA" || cxc.saldo_pendiente === 0) {
+        estadoPago = "PAGADO"
+      } else if (cxc.monto_pagado > 0 && cxc.saldo_pendiente > 0) {
+        estadoPago = "PARCIAL"
+      }
+    }
+
     if (estadoPago === "PAGADO") {
       return (
         <div className="flex items-center gap-1.5">
@@ -163,7 +173,7 @@ function getTipoVentaBadge(venta: Venta) {
       )
     }
   }
-  
+
   // Venta al contado
   return (
     <Badge variant="secondary" className="gap-1">
@@ -186,8 +196,8 @@ export default function HistorialVentasV2() {
   const { data: configTenant } = useGetApiTenantConfiguracion()
 
   const { data, isLoading, refetch } = useGetApiVentas(
-    { 
-      page: 1, 
+    {
+      page: 1,
       limit: 100,
       q: search || undefined,
       fecha_inicio: fecha || undefined,
@@ -204,8 +214,8 @@ export default function HistorialVentasV2() {
   const ventas = data?.data || []
 
   // Hook para consultar saldo disponible de NC
-  const { data: saldoNCResponse } = useGetApiVentasIdSaldoNc(
-    selectedVenta?.id?.toString() || "0",
+  const { data: saldoNC } = useGetApiVentasIdSaldoNc(
+    selectedVenta?.id ?? 0,
     {
       query: {
         enabled: !!selectedVenta?.id,
@@ -213,14 +223,11 @@ export default function HistorialVentasV2() {
       },
     }
   )
-  const saldoNC = saldoNCResponse?.data
 
   // Hook para consultar NC bloqueantes (Anulación 01 o Devolución Total 07)
   const { data: notasCreditoResponse } = useGetApiNotasCredito(
     {
-      venta_referencia_id: selectedVenta?.id,
-      tipo_nota: undefined, // Traemos todas y filtramos en cliente
-      estado_sunat: undefined,
+      venta_id: selectedVenta?.id,
       page: 1,
       limit: 100,
     },
@@ -235,20 +242,20 @@ export default function HistorialVentasV2() {
   // Verificar si hay NC bloqueantes para Guías de Remisión
   const tieneNCBloqueante = React.useMemo(() => {
     if (!notasCreditoResponse?.data) return false
-    
-    const ncBloqueantes = notasCreditoResponse.data.filter((nc: any) => 
+
+    const ncBloqueantes = notasCreditoResponse.data.filter((nc) =>
       (nc.tipo_nota === 'ANULACION_DE_LA_OPERACION' || nc.tipo_nota === 'DEVOLUCION_TOTAL') &&
       (nc.estado_sunat === 'ACEPTADO' || nc.estado_sunat === 'PENDIENTE')
     )
-    
+
     return ncBloqueantes.length > 0
   }, [notasCreditoResponse])
 
   // Obtener la primera NC bloqueante para mostrar en el mensaje
   const ncBloqueante = React.useMemo(() => {
     if (!notasCreditoResponse?.data) return null
-    
-    return notasCreditoResponse.data.find((nc: any) => 
+
+    return notasCreditoResponse.data.find((nc) =>
       (nc.tipo_nota === 'ANULACION_DE_LA_OPERACION' || nc.tipo_nota === 'DEVOLUCION_TOTAL') &&
       (nc.estado_sunat === 'ACEPTADO' || nc.estado_sunat === 'PENDIENTE')
     )
@@ -265,7 +272,7 @@ export default function HistorialVentasV2() {
         const numero = String(venta.numero_comprobante || venta.id).padStart(8, "0")
         const fecha = format(new Date(venta.created_at), "dd/MM/yyyy", { locale: es })
         const hora = format(new Date(venta.created_at), "HH:mm", { locale: es })
-        
+
         return (
           <div>
             <div className="font-mono font-semibold">{`${serie}-${numero}`}</div>
@@ -297,13 +304,13 @@ export default function HistorialVentasV2() {
       cell: ({ row }) => {
         const cliente = row.original.cliente
         const nombre = cliente?.nombre || cliente?.razon_social || "Público General"
-        const doc = cliente?.documento_identidad || (cliente as any)?.ruc
+        const doc = cliente?.documento_identidad || cliente?.ruc
         return (
           <div>
             <div className="font-medium">{nombre}</div>
             {doc && (
               <div className="text-xs text-muted-foreground">
-                {(cliente as any)?.ruc ? "RUC" : "DNI"}: {doc}
+                {cliente?.ruc ? "RUC" : "DNI"}: {doc}
               </div>
             )}
           </div>
@@ -362,14 +369,14 @@ export default function HistorialVentasV2() {
       id: "actions",
       cell: ({ row }) => {
         const venta = row.original
-        
+
         // Verificar si ESTA venta tiene NC bloqueantes
-        const tieneNCBloqueantePorVenta = notasCreditoResponse?.data?.some((nc: any) => 
-          nc.venta_id === venta.id &&
+        const tieneNCBloqueantePorVenta = notasCreditoResponse?.data?.some((nc) =>
+          nc.venta_referencia_id === venta.id &&
           (nc.tipo_nota === 'ANULACION_DE_LA_OPERACION' || nc.tipo_nota === 'DEVOLUCION_TOTAL') &&
           (nc.estado_sunat === 'ACEPTADO' || nc.estado_sunat === 'PENDIENTE')
         ) ?? false
-        
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -477,9 +484,9 @@ export default function HistorialVentasV2() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}
@@ -573,14 +580,14 @@ export default function HistorialVentasV2() {
                     <div className="font-bold text-lg">
                       {configTenant.nombre_empresa || "Ferretería"}
                     </div>
-                    {(configTenant.configuracion as any)?.empresa?.ruc && (
+                    {configTenant.configuracion?.empresa?.ruc && (
                       <div className="text-sm text-muted-foreground">
-                        RUC: {(configTenant.configuracion as any).empresa.ruc}
+                        RUC: {configTenant.configuracion.empresa.ruc}
                       </div>
                     )}
-                    {(configTenant.configuracion as any)?.empresa?.direccion && (
+                    {configTenant.configuracion?.empresa?.direccion && (
                       <div className="text-xs text-muted-foreground">
-                        {(configTenant.configuracion as any).empresa.direccion}
+                        {configTenant.configuracion.empresa.direccion}
                       </div>
                     )}
                   </div>
@@ -605,17 +612,17 @@ export default function HistorialVentasV2() {
                         <span className="font-mono">{selectedVenta.cliente.documento_identidad}</span>
                       </div>
                     )}
-                    {(selectedVenta.cliente as any)?.ruc && (
+                    {selectedVenta.cliente?.ruc && (
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">RUC</span>
-                        <span className="font-mono">{(selectedVenta.cliente as any).ruc}</span>
+                        <span className="font-mono">{selectedVenta.cliente.ruc}</span>
                       </div>
                     )}
-                    {(selectedVenta.cliente as any)?.razon_social && (
+                    {selectedVenta.cliente?.razon_social && (
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Razón Social</span>
                         <span className="text-sm text-right max-w-[300px]">
-                          {(selectedVenta.cliente as any).razon_social}
+                          {selectedVenta.cliente.razon_social}
                         </span>
                       </div>
                     )}
@@ -685,7 +692,7 @@ export default function HistorialVentasV2() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {(selectedVenta.detalles || []).map((detalle: any, idx: number) => (
+                        {(selectedVenta.detalles || []).map((detalle, idx) => (
                           <TableRow key={idx}>
                             <TableCell className="font-mono">{detalle.cantidad}</TableCell>
                             <TableCell>
@@ -719,7 +726,7 @@ export default function HistorialVentasV2() {
                         S/{" "}
                         {Number(
                           (selectedVenta.detalles || []).reduce(
-                            (s: number, d: any) => s + Number(d.valor_unitario || 0) * Number(d.cantidad || 0),
+                            (s, d) => s + Number(d.valor_unitario || 0) * Number(d.cantidad || 0),
                             0
                           )
                         ).toFixed(2)}
@@ -731,7 +738,7 @@ export default function HistorialVentasV2() {
                         S/{" "}
                         {Number(
                           (selectedVenta.detalles || []).reduce(
-                            (s: number, d: any) => s + Number(d.igv_total || 0),
+                            (s, d) => s + Number(d.igv_total || 0),
                             0
                           )
                         ).toFixed(2)}
@@ -855,10 +862,10 @@ export default function HistorialVentasV2() {
                       <p className="font-semibold">🚫 Venta bloqueada para Guías de Remisión</p>
                       <p className="text-xs mt-1">
                         Existe una Nota de Crédito de tipo <strong>
-                          {(ncBloqueante as any).tipo_nota === 'ANULACION_DE_LA_OPERACION' 
-                            ? 'ANULACIÓN DE LA OPERACIÓN' 
+                          {ncBloqueante.tipo_nota === 'ANULACION_DE_LA_OPERACION'
+                            ? 'ANULACIÓN DE LA OPERACIÓN'
                             : 'DEVOLUCIÓN TOTAL'}
-                        </strong> con estado <strong>{(ncBloqueante as any).estado_sunat}</strong>.
+                        </strong> con estado <strong>{ncBloqueante.estado_sunat}</strong>.
                         Las ventas anuladas o totalmente devueltas no pueden generar guías de remisión.
                       </p>
                     </AlertDescription>
@@ -882,11 +889,11 @@ export default function HistorialVentasV2() {
                       }}
                       disabled={selectedVenta.estado_sunat !== "ACEPTADO" || tieneNCBloqueante}
                       title={
-                        tieneNCBloqueante 
-                          ? '🚫 Venta bloqueada por NC de Anulación o Devolución Total' 
+                        tieneNCBloqueante
+                          ? '🚫 Venta bloqueada por NC de Anulación o Devolución Total'
                           : selectedVenta.estado_sunat !== "ACEPTADO"
-                          ? `Venta debe estar ACEPTADA en SUNAT (actual: ${selectedVenta.estado_sunat})`
-                          : undefined
+                            ? `Venta debe estar ACEPTADA en SUNAT (actual: ${selectedVenta.estado_sunat})`
+                            : undefined
                       }
                     >
                       <Truck className="mr-2 h-4 w-4" />
@@ -901,15 +908,15 @@ export default function HistorialVentasV2() {
                       setModalNCOpen(true)
                     }}
                     disabled={
-                      selectedVenta.estado_sunat !== "ACEPTADO" || 
+                      selectedVenta.estado_sunat !== "ACEPTADO" ||
                       (saldoNC !== undefined && saldoNC.puede_emitir_nc === false)
                     }
                     title={
                       selectedVenta.estado_sunat !== "ACEPTADO"
                         ? `Venta debe estar ACEPTADA en SUNAT (actual: ${selectedVenta.estado_sunat})`
                         : saldoNC?.puede_emitir_nc === false
-                        ? `No se pueden emitir más NC. Razón: ${saldoNC.razon_bloqueo || 'Saldo agotado'}`
-                        : undefined
+                          ? `No se pueden emitir más NC. Razón: ${saldoNC.razon_bloqueo || 'Saldo agotado'}`
+                          : undefined
                     }
                   >
                     <FileX className="mr-2 h-4 w-4" />

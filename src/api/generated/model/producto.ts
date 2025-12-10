@@ -22,7 +22,10 @@ import type { ProductoAfectacionIgv } from "./productoAfectacionIgv";
 import type { ProductoCostoCompra } from "./productoCostoCompra";
 import type { ProductoImagenUrl } from "./productoImagenUrl";
 import type { ProductoMarcaId } from "./productoMarcaId";
+import type { ProductoMarca } from "./productoMarca";
+import type { ProductoUnidadMedida } from "./productoUnidadMedida";
 import type { ProductoCategoriaId } from "./productoCategoriaId";
+import type { ProductoCategoria } from "./productoCategoria";
 
 export interface Producto {
   /** ID único del producto */
@@ -42,8 +45,14 @@ export interface Producto {
   stock_minimo: number;
   imagen_url: ProductoImagenUrl;
   marca_id: ProductoMarcaId;
+  /** Marca del producto */
+  marca?: ProductoMarca;
   unidad_medida_id: number;
+  /** Unidad de medida del producto */
+  unidad_medida?: ProductoUnidadMedida;
   categoria_id: ProductoCategoriaId;
+  /** Categoría del producto */
+  categoria?: ProductoCategoria;
   /** Estado del producto (soft delete) */
   isActive: boolean;
   /** ID del tenant propietario */

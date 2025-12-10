@@ -18,8 +18,6 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 import type { VentaMetodoPago } from "./ventaMetodoPago";
 import type { VentaCondicionPago } from "./ventaCondicionPago";
-import type { VentaEstadoPago } from "./ventaEstadoPago";
-import type { VentaFechaVencimiento } from "./ventaFechaVencimiento";
 import type { VentaClienteId } from "./ventaClienteId";
 import type { VentaCliente } from "./ventaCliente";
 import type { VentaUsuarioId } from "./ventaUsuarioId";
@@ -34,6 +32,7 @@ import type { VentaXmlUrl } from "./ventaXmlUrl";
 import type { VentaCdrUrl } from "./ventaCdrUrl";
 import type { VentaHashCpe } from "./ventaHashCpe";
 import type { VentaCodigoQr } from "./ventaCodigoQr";
+import type { VentaCuentaPorCobrar } from "./ventaCuentaPorCobrar";
 import type { VentaDetallesItem } from "./ventaDetallesItem";
 
 export interface Venta {
@@ -45,12 +44,6 @@ export interface Venta {
   metodo_pago: VentaMetodoPago;
   /** Condición de pago */
   condicion_pago: VentaCondicionPago;
-  /** Estado del pago */
-  estado_pago: VentaEstadoPago;
-  /** Fecha de vencimiento (solo para crédito) */
-  fecha_vencimiento: VentaFechaVencimiento;
-  /** Saldo pendiente de pago */
-  saldo_pendiente: number;
   /** Fecha y hora de creación */
   created_at: string;
   tenant_id: number;
@@ -77,6 +70,8 @@ export interface Venta {
   hash_cpe: VentaHashCpe;
   /** Código QR del comprobante (URL o texto) */
   codigo_qr: VentaCodigoQr;
+  /** Cuenta por cobrar asociada (solo para ventas a CREDITO). Contiene estado de pago, saldo y vencimiento. */
+  cuenta_por_cobrar: VentaCuentaPorCobrar;
   /** Detalles de los productos vendidos */
   detalles?: VentaDetallesItem[];
 }

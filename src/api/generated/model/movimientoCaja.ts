@@ -17,8 +17,9 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 import type { MovimientoCajaTipo } from "./movimientoCajaTipo";
-import type { MovimientoCajaReferenciaTipo } from "./movimientoCajaReferenciaTipo";
-import type { MovimientoCajaReferenciaId } from "./movimientoCajaReferenciaId";
+import type { MovimientoCajaVentaId } from "./movimientoCajaVentaId";
+import type { MovimientoCajaNotaCreditoId } from "./movimientoCajaNotaCreditoId";
+import type { MovimientoCajaPagoId } from "./movimientoCajaPagoId";
 import type { MovimientoCajaSesionCaja } from "./movimientoCajaSesionCaja";
 
 export interface MovimientoCaja {
@@ -30,10 +31,14 @@ export interface MovimientoCaja {
   monto: number;
   /** Descripción detallada del movimiento */
   descripcion: string;
-  /** Tipo de documento referenciado */
-  referencia_tipo?: MovimientoCajaReferenciaTipo;
-  /** ID del documento referenciado */
-  referencia_id?: MovimientoCajaReferenciaId;
+  /** ID de la venta asociada (si aplica) */
+  venta_id: MovimientoCajaVentaId;
+  /** ID de la nota de crédito asociada (si aplica) */
+  nota_credito_id: MovimientoCajaNotaCreditoId;
+  /** ID del pago asociado (si aplica) */
+  pago_id: MovimientoCajaPagoId;
+  /** Indica si es un movimiento manual (sin documento asociado) */
+  es_manual: boolean;
   /** Fecha del movimiento */
   fecha: string;
   /** ID de la sesión de caja */

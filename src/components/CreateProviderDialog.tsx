@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { usePostApiProveedores } from "@/api/generated/proveedores/proveedores";
 import type { Proveedor, CreateProveedorTipoDocumento } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/api-error";
 
 type ProveedorCreateInput = {
   nombre: string;
@@ -91,7 +92,7 @@ export default function CreateProviderDialog({ onCreated, children }: CreateProv
       // Detectar tipo_documento según longitud
       const documento = values.ruc_identidad.trim();
       let tipo_documento: CreateProveedorTipoDocumento;
-      
+
       if (documento.length === 8) {
         tipo_documento = 'DNI';
       } else if (documento.length === 11) {
@@ -115,9 +116,8 @@ export default function CreateProviderDialog({ onCreated, children }: CreateProv
       toast.success("Proveedor creado correctamente");
       onCreated?.(created);
       setOpen(false);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el proveedor";
-      toast.error(message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Error al crear el proveedor"));
     }
   }
 
@@ -128,7 +128,7 @@ export default function CreateProviderDialog({ onCreated, children }: CreateProv
           children
         ) : (
           <Button>
-<Plus className="mr-2 size-4" /> Crear Proveedor
+            <Plus className="mr-2 size-4" /> Crear Proveedor
           </Button>
         )}
       </DialogTrigger>
