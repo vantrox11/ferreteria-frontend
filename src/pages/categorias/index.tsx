@@ -14,6 +14,7 @@ import { toast } from "sonner"
 
 import { useGetApiCategorias, usePatchApiCategoriasIdDesactivar } from "@/api/generated/categorías/categorías"
 import type { Categoria } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -78,9 +79,8 @@ export default function CategoriasPageV2() {
         setDeactivateOpen(false)
         setConfirmCategoria(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })

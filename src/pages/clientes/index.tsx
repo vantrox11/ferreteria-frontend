@@ -8,12 +8,13 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Pencil, Trash2, CreditCard, Calendar, XCircle, CheckCircle2 } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Pencil, Trash2, CreditCard, Calendar, XCircle } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { useGetApiClientes, usePatchApiClientesIdDesactivar } from "@/api/generated/clientes/clientes"
 import type { Cliente } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -95,12 +96,12 @@ export default function ClientesPageV2() {
   })
 
   const allClientes = data?.data || []
-  
+
   // Filtrar localmente por búsqueda
   const clientes = React.useMemo(() => {
     if (!debouncedSearch) return allClientes
     const search = debouncedSearch.toLowerCase()
-    return allClientes.filter(c => 
+    return allClientes.filter(c =>
       c.nombre?.toLowerCase().includes(search) ||
       c.documento_identidad?.toLowerCase().includes(search) ||
       c.ruc?.toLowerCase().includes(search) ||
@@ -119,9 +120,8 @@ export default function ClientesPageV2() {
         setDeactivateOpen(false)
         setConfirmCliente(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err, "No se pudo desactivar"))
       },
     },
   })
@@ -220,7 +220,7 @@ export default function ClientesPageV2() {
         cell: ({ row }) => {
           const limite = row.original.limite_credito;
           const dias = row.original.dias_credito;
-          
+
           // Sin crédito habilitado
           if (!limite || limite <= 0) {
             return (
@@ -230,7 +230,7 @@ export default function ClientesPageV2() {
               </Badge>
             );
           }
-          
+
           // Con crédito habilitado
           return (
             <div className="flex flex-col gap-1.5">

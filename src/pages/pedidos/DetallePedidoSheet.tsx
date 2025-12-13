@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/sheet";
 import { useGetApiPedidosId } from "@/api/generated/pedidos/pedidos";
 import { getApiProductosId } from "@/api/generated/productos/productos";
+import type { Producto } from "@/api/generated/model";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 
@@ -46,23 +46,24 @@ export default function DetallePedidoSheet({
     (async () => {
       try {
         const responses = await Promise.all(
-          pedido.detalles.map((det) =>
+          pedido.detalles!.map((det) =>
             getApiProductosId(det.producto_id, undefined, ac.signal)
           )
         );
 
         if (!mounted) return;
 
-        const productos = responses.map((r: any) => r?.data ?? r);
+        // getApiProductosId retorna directamente Producto
+        const productos: Producto[] = responses;
 
-        const detalles = pedido.detalles.map((det, i) => {
+        const detalles = pedido.detalles!.map((det, i) => {
           const prod = productos[i];
           const precio = prod?.precio_venta ? Number(prod.precio_venta) : 0;
 
           return {
             id: det.id,
             producto_id: det.producto_id,
-            nombre: det.producto_nombre,
+            nombre: det.producto?.nombre ?? prod?.nombre ?? '',
             cantidad: Number(det.cantidad),
             precio,
             subtotal: precio * Number(det.cantidad),

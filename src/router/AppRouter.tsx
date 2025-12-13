@@ -24,9 +24,8 @@ import POSPage from "@/pages/ventas/POS";
 import HistorialVentasPage from "@/pages/ventas/historial-v2";
 import NotasCreditoPage from "@/pages/ventas/notas-credito-v2";
 import GuiasRemisionPage from "@/pages/documentos/guias-remision-v2";
-import DashboardVentasV6Page from "@/pages/dashboard/ventas/dashboard-v6";
-import DashboardGeneralPage from "@/pages/dashboard/DashboardGeneral";
-import DashboardVentasAnalisisPage from "@/pages/dashboard/DashboardVentasAnalisis";
+import DashboardGeneralPage from "@/pages/dashboard/index";
+import DashboardVentasAnalisisPage from "@/pages/dashboard/ventas/index";
 //import ReportesPage from "@/pages/reportes/index";
 //import ReportesFiscalesPage from "@/pages/reportes/fiscales";
 import ConfiguracionPage from "@/pages/configuracion/index";
@@ -103,7 +102,6 @@ const AppRouter: React.FC = () => {
                         <Route path="ventas" element={<POSPage />} />
                         <Route path="ventas/historial-v2" element={<HistorialVentasPage />} />
                         <Route path="ventas/notas-credito-v2" element={<NotasCreditoPage />} />
-                        <Route path="ventas/dashboard-v6" element={<DashboardVentasV6Page />} />
 
                         <Route path="documentos/guias-remision-v2" element={<GuiasRemisionPage />} />
 

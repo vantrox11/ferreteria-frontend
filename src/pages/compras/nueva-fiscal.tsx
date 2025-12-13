@@ -14,35 +14,36 @@ import { ProveedorFiscalSelector } from "@/components/ProveedorFiscalSelector";
 import { ProductSearchSelector } from "@/components/ProductSearchSelector";
 import { usePostApiCompras } from "@/api/generated/órdenes-de-compra/órdenes-de-compra";
 import { usePurchaseOrderCalculator, formatCurrency } from "@/hooks/usePurchaseOrderCalculator";
-import type { Proveedor, Producto } from "@/api/generated/model";
+import type { Proveedor, Producto, CreateOrdenCompraTipoComprobante } from "@/api/generated/model";
 import type { OrdenCompraDetalleItem } from "@/hooks/usePurchaseOrderCalculator";
+import { getErrorMessage } from "@/lib/api-error";
 
 const NuevaOrdenCompraPage = () => {
   const navigate = useNavigate();
-  
+
   // Estados del formulario - Información fiscal
   const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null);
   const [tipoComprobante, setTipoComprobante] = useState<string>("FACTURA");
   const [serie, setSerie] = useState<string>("");
   const [numero, setNumero] = useState<string>("");
   const [fechaEmision, setFechaEmision] = useState<string>(new Date().toISOString().split("T")[0]);
-  
+
   // Estados para agregar productos
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [cantidad, setCantidad] = useState<string>("");
   const [costoUnitario, setCostoUnitario] = useState<string>("");
-  
+
   // Carrito de compra
   const [items, setItems] = useState<OrdenCompraDetalleItem[]>([]);
-  
+
   // Calcular totales con IGV usando el hook
   const { subtotal_base, impuesto_igv, total, detalles } = usePurchaseOrderCalculator(items);
-  
+
   // Referencias para navegación con teclado
   const cantidadRef = useRef<HTMLInputElement>(null);
   const costoRef = useRef<HTMLInputElement>(null);
   const productoRef = useRef<HTMLInputElement>(null);
-  
+
   // Mutation para crear orden
   const { mutate: createOrden, isPending } = usePostApiCompras({
     mutation: {
@@ -50,9 +51,8 @@ const NuevaOrdenCompraPage = () => {
         toast.success(`Orden de compra #${data.id} creada correctamente`);
         navigate("/dashboard/compras");
       },
-      onError: (error: any) => {
-        const message = error?.response?.data?.message || error?.message || "Error al crear orden de compra";
-        toast.error(message);
+      onError: (error) => {
+        toast.error(getErrorMessage(error));
       },
     },
   });
@@ -93,7 +93,7 @@ const NuevaOrdenCompraPage = () => {
 
     // Verificar si el producto ya está en el carrito
     const existingIndex = items.findIndex(item => item.producto_id === selectedProducto.id);
-    
+
     if (existingIndex >= 0) {
       // Actualizar cantidad del producto existente
       const updatedItems = [...items];
@@ -156,7 +156,7 @@ const NuevaOrdenCompraPage = () => {
 
     const payload = {
       proveedor_id: selectedProveedor.id,
-      tipo_comprobante: tipoComprobante as any,
+      tipo_comprobante: tipoComprobante as CreateOrdenCompraTipoComprobante,
       serie: serie || undefined,
       numero: numero || undefined,
       fecha_emision: fechaISO,
@@ -215,7 +215,7 @@ const NuevaOrdenCompraPage = () => {
               <ProveedorFiscalSelector
                 value={selectedProveedor?.id}
                 onValueChange={setSelectedProveedor}
-                tipoComprobanteRequerido={tipoComprobante as any}
+                tipoComprobanteRequerido={tipoComprobante as CreateOrdenCompraTipoComprobante}
                 disabled={isPending}
                 required={true}
               />
@@ -439,7 +439,7 @@ const NuevaOrdenCompraPage = () => {
                       </p>
                     ) : null}
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
                     {/* Desglose compacto */}
                     <div className="text-right space-y-1">

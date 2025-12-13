@@ -2,7 +2,7 @@
  * Custom Axios Instance para Orval
  * Maneja automáticamente:
  * - Autenticación JWT
- * - Multi-tenancy por subdominio
+ * - Multi-tenancy por subdominio o header X-Tenant-ID
  * - Manejo consistente de errores
  */
 
@@ -10,40 +10,87 @@ import Axios, { type AxiosRequestConfig } from 'axios';
 import { getToken } from '@/auth/token';
 
 /**
+ * Obtiene el subdominio del hostname actual
+ * Retorna null si no hay subdominio válido
+ */
+function getSubdomain(): string | null {
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+
+  // Debe tener al menos 2 partes y no ser 'localhost' o 'www'
+  if (parts.length >= 2 && parts[0] !== 'localhost' && parts[0] !== 'www') {
+    return parts[0];
+  }
+  return null;
+}
+
+/**
  * Construye la URL base según el subdominio actual
  */
 function buildApiBaseUrl(): string {
   const apiBaseOrigin = import.meta.env.VITE_API_BASE_ORIGIN || 'http://localhost:3001';
-  
+
   const hostname = window.location.hostname;
-  
+
   // En desarrollo local, siempre usar localhost sin subdominio
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return apiBaseOrigin;
   }
-  
-  const parts = hostname.split('.');
-  
-  if (parts.length >= 2) {
-    const subdomain = parts[0];
+
+  const subdomain = getSubdomain();
+
+  if (subdomain) {
     const apiUrl = new URL(apiBaseOrigin);
     apiUrl.hostname = `${subdomain}.${apiUrl.hostname}`;
     return apiUrl.toString();
   }
-  
+
   return apiBaseOrigin;
+}
+
+/**
+ * Obtiene el tenant ID para desarrollo
+ * Prioridad: subdominio > variable de entorno > null
+ */
+function getTenantIdForDev(): string | null {
+  // 1. Intentar obtener del subdominio (ej: ferreteria-b.localhost:5173)
+  const subdomain = getSubdomain();
+  if (subdomain) {
+    return subdomain;
+  }
+
+  // 2. Usar variable de entorno para desarrollo sin subdominio
+  const defaultTenant = import.meta.env.VITE_DEFAULT_TENANT;
+  if (defaultTenant) {
+    return defaultTenant;
+  }
+
+  return null;
 }
 
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: buildApiBaseUrl(),
 });
 
-// Interceptor para agregar token JWT automáticamente
+// Interceptor para agregar token JWT y X-Tenant-ID automáticamente
 AXIOS_INSTANCE.interceptors.request.use((config) => {
+  // Inyectar token JWT
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // En desarrollo local (sin subdominio en la API), inyectar X-Tenant-ID
+  const hostname = window.location.hostname;
+  const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
+
+  if (isLocalDev) {
+    const tenantId = getTenantIdForDev();
+    if (tenantId) {
+      config.headers['X-Tenant-ID'] = tenantId;
+    }
+  }
+
   return config;
 });
 

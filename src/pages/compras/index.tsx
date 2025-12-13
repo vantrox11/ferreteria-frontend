@@ -43,10 +43,12 @@ import {
   useGetApiComprasId,
   usePostApiComprasIdCancelar,
 } from "@/api/generated/órdenes-de-compra/órdenes-de-compra";
-import type { Proveedor } from "@/api/generated/model";
+import type { Proveedor, GetApiComprasEstado, OrdenCompraDetallesItem } from "@/api/generated/model";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatCurrency } from "@/hooks/usePurchaseOrderCalculator";
+import { getErrorMessage } from "@/lib/api-error";
+import type { LucideIcon } from "lucide-react";
 
 function formatDate(dateString: string | null | undefined) {
   if (!dateString) return "—";
@@ -69,14 +71,14 @@ function formatDateTime(dateString: string | null | undefined) {
 }
 
 const getEstadoBadge = (estado: string) => {
-  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", icon: any, label: string, className?: string }> = {
+  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", icon: LucideIcon, label: string, className?: string }> = {
     pendiente: { variant: "secondary", icon: Clock, label: "Pendiente" },
     recibida: { variant: "default", icon: CheckCircle2, label: "Recibida" },
     cancelada: { variant: "destructive", icon: XCircle, label: "Cancelada" },
   };
   const item = config[estado] || { variant: "outline" as const, icon: AlertCircle, label: estado };
   const Icon = item.icon;
-  
+
   return (
     <Badge variant={item.variant} className={`gap-1 ${item.className || ""}`}>
       <Icon className="h-3 w-3" />
@@ -87,15 +89,15 @@ const getEstadoBadge = (estado: string) => {
 
 const getTipoComprobanteBadge = (tipo: string | null | undefined) => {
   if (!tipo) return <Badge variant="outline">Sin Comprobante</Badge>;
-  
+
   const config: Record<string, { variant: "default" | "secondary" | "outline", label: string }> = {
     FACTURA: { variant: "default", label: "Factura" },
     BOLETA: { variant: "secondary", label: "Boleta" },
     GUIA: { variant: "outline", label: "Guía" },
   };
-  
+
   const item = config[tipo] || { variant: "outline" as const, label: tipo };
-  
+
   return <Badge variant={item.variant}>{item.label}</Badge>;
 };
 
@@ -121,7 +123,7 @@ const ComprasPage = () => {
   // Query principal con filtros
   const { data: ordenesResponse, isLoading, error } = useGetApiCompras(
     {
-      estado: estadoFilter !== "todas" ? (estadoFilter as any) : undefined,
+      estado: estadoFilter !== "todas" ? (estadoFilter as GetApiComprasEstado) : undefined,
       proveedor_id: proveedorFilter?.id,
       fecha_inicio: fechaInicio || undefined,
       fecha_fin: fechaFin || undefined,
@@ -144,9 +146,8 @@ const ComprasPage = () => {
         setConfirmCancelarOpen(false);
         setDetailSheetOpen(false);
       },
-      onError: (error: any) => {
-        const message = error?.response?.data?.message || "Error al cancelar orden";
-        toast.error(message);
+      onError: (error) => {
+        toast.error(getErrorMessage(error));
       },
     },
   });
@@ -422,19 +423,15 @@ const ComprasPage = () => {
                             <span>{ordenDetalle.proveedor.ruc_identidad}</span>
                           </div>
                         )}
-                        {/* @ts-ignore */}
                         {ordenDetalle.proveedor.telefono && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Teléfono:</span>
-                            {/* @ts-ignore */}
                             <span>{ordenDetalle.proveedor.telefono}</span>
                           </div>
                         )}
-                        {/* @ts-ignore */}
                         {ordenDetalle.proveedor.email && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Email:</span>
-                            {/* @ts-ignore */}
                             <span>{ordenDetalle.proveedor.email}</span>
                           </div>
                         )}
@@ -509,7 +506,6 @@ const ComprasPage = () => {
                 {/* Sección B: Lista de Productos */}
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Productos Ordenados</h3>
-                  {/* @ts-ignore */}
                   {ordenDetalle.detalles && ordenDetalle.detalles.length > 0 ? (
                     <div className="space-y-4">
                       <div className="rounded-lg border overflow-hidden">
@@ -524,18 +520,18 @@ const ComprasPage = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {ordenDetalle.detalles.map((detalle: any) => (
+                            {ordenDetalle.detalles.map((detalle: OrdenCompraDetallesItem) => (
                               <TableRow key={detalle.id} className="border-t">
                                 <TableCell className="p-2">
-                                  <div className="font-medium">{detalle.producto_nombre || "—"}</div>
-                                  {ordenDetalle.estado === "pendiente" && (
+                                  <div className="font-medium">{detalle.producto?.nombre || "—"}</div>
+                                  {ordenDetalle.estado === "pendiente" && detalle.producto?.stock != null && (
                                     <div className="text-xs text-muted-foreground">
-                                      Stock actual: {Number(detalle.stock_actual || 0).toFixed(3)}
+                                      Stock actual: {Number(detalle.producto.stock).toFixed(3)}
                                     </div>
                                   )}
                                 </TableCell>
                                 <TableCell className="p-2 text-muted-foreground">
-                                  {detalle.producto_sku || "—"}
+                                  {detalle.producto?.sku || "—"}
                                 </TableCell>
                                 <TableCell className="p-2 text-left tabular-nums">
                                   {Number(detalle.cantidad).toFixed(3).replace(/\.?0+$/, "")}
@@ -544,7 +540,7 @@ const ComprasPage = () => {
                                   {formatCurrency(Number(detalle.costo_unitario) || 0)}
                                 </TableCell>
                                 <TableCell className="p-2 text-left font-medium tabular-nums">
-                                  {formatCurrency(Number(detalle.subtotal) || 0)}
+                                  {formatCurrency(Number(detalle.cantidad) * Number(detalle.costo_unitario))}
                                 </TableCell>
                               </TableRow>
                             ))}

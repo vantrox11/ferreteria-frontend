@@ -15,16 +15,15 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { 
-  ArrowUpDown, 
-  CornerUpLeft, 
-  Eye, 
-  FileText, 
-  MoreHorizontal, 
-  BadgeCheckIcon, 
-  Calendar, 
-  DollarSign, 
-  User, 
+import {
+  ArrowUpDown,
+  CornerUpLeft,
+  Eye,
+  FileText,
+  MoreHorizontal,
+  BadgeCheckIcon,
+  Calendar,
+  User,
   Package,
   CheckCircle2,
   XCircle,
@@ -35,7 +34,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
 import { useGetApiNotasCredito } from "@/api/generated/notas-credito/notas-credito"
-import type { NotaCredito } from "@/api/generated/model"
+import type { NotaCredito, NotaCreditoDetalle } from "@/api/generated/model"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -74,7 +73,7 @@ const TIPO_LABELS: Record<string, string> = {
 }
 
 // Badge de estado
-function getEstadoBadge(estado: string) {
+function getEstadoBadge(estado: string | null | undefined) {
   if (estado === "ACEPTADO") {
     return (
       <Badge variant="secondary" className="bg-blue-500 text-white dark:bg-blue-600">
@@ -91,7 +90,7 @@ function getEstadoBadge(estado: string) {
 
 export default function NotasCreditoPage() {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [selectedNC, setSelectedNC] = React.useState<any | null>(null)
+  const [selectedNC, setSelectedNC] = React.useState<NotaCredito | null>(null)
   const [sheetOpen, setSheetOpen] = React.useState(false)
 
   const { data, isLoading } = useGetApiNotasCredito(
@@ -107,7 +106,7 @@ export default function NotasCreditoPage() {
   const notasCredito = data?.data || []
 
   // Definición de columnas
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<NotaCredito>[] = [
     {
       accessorKey: "comprobante",
       header: "Comprobante",
@@ -267,9 +266,9 @@ export default function NotasCreditoPage() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}
@@ -468,11 +467,11 @@ export default function NotasCreditoPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {selectedNC.detalles.map((detalle: any, idx: number) => (
+                          {selectedNC.detalles.map((detalle: NotaCreditoDetalle, idx: number) => (
                             <TableRow key={idx}>
                               <TableCell className="font-mono">{detalle.cantidad}</TableCell>
                               <TableCell>
-                                <div className="text-sm">{detalle.descripcion}</div>
+                                <div className="text-sm">{detalle.producto?.nombre || 'Producto sin nombre'}</div>
                                 {detalle.producto?.sku && (
                                   <div className="text-xs text-muted-foreground font-mono">
                                     SKU: {detalle.producto.sku}
@@ -483,7 +482,7 @@ export default function NotasCreditoPage() {
                                 S/ {Number(detalle.precio_unitario).toFixed(2)}
                               </TableCell>
                               <TableCell className="text-right font-mono font-semibold">
-                                S/ {Number(detalle.valor_venta).toFixed(2)}
+                                S/ {(Number(detalle.cantidad) * Number(detalle.valor_unitario)).toFixed(2)}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -514,9 +513,9 @@ export default function NotasCreditoPage() {
                         {selectedNC.xml_url && (
                           <div className="flex items-center gap-2">
                             <LinkIcon className="h-3 w-3 text-muted-foreground" />
-                            <a 
-                              href={selectedNC.xml_url} 
-                              target="_blank" 
+                            <a
+                              href={selectedNC.xml_url}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:underline text-sm"
                             >
@@ -527,9 +526,9 @@ export default function NotasCreditoPage() {
                         {selectedNC.cdr_url && (
                           <div className="flex items-center gap-2">
                             <LinkIcon className="h-3 w-3 text-muted-foreground" />
-                            <a 
-                              href={selectedNC.cdr_url} 
-                              target="_blank" 
+                            <a
+                              href={selectedNC.cdr_url}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:underline text-sm"
                             >

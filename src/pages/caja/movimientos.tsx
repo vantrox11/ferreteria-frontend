@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -28,7 +28,7 @@ export default function MovimientosCajaPage() {
   const [showModal, setShowModal] = useState(false);
 
   // Obtener movimientos de la sesión activa
-  const { data: movimientos, isLoading, refetch } = useGetApiMovimientosCajaSesionActiva();
+  const { data: movimientos, isLoading } = useGetApiMovimientosCajaSesionActiva();
 
   const movimientosData = movimientos?.data || [];
 
@@ -42,11 +42,6 @@ export default function MovimientosCajaPage() {
     .reduce((sum, m) => sum + Number(m.monto), 0);
 
   const saldoNeto = totalIngresos - totalEgresos;
-
-  const handleMovimientoCreated = () => {
-    refetch();
-    setShowModal(false);
-  };
 
   return (
     <div className="space-y-6 p-6">
@@ -175,17 +170,18 @@ export default function MovimientosCajaPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {movimiento.referencia_tipo && movimiento.referencia_id ? (
-                          <span className="font-mono">
-                            {movimiento.referencia_tipo} #{movimiento.referencia_id}
-                          </span>
+                        {movimiento.venta_id ? (
+                          <span className="font-mono">Venta #{movimiento.venta_id}</span>
+                        ) : movimiento.nota_credito_id ? (
+                          <span className="font-mono">NC #{movimiento.nota_credito_id}</span>
+                        ) : movimiento.pago_id ? (
+                          <span className="font-mono">Pago #{movimiento.pago_id}</span>
                         ) : (
                           <span className="italic">Manual</span>
                         )}
                       </TableCell>
-                      <TableCell className={`text-right font-semibold ${
-                        movimiento.tipo === 'INGRESO' ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <TableCell className={`text-right font-semibold ${movimiento.tipo === 'INGRESO' ? 'text-green-600' : 'text-red-600'
+                        }`}>
                         {movimiento.tipo === 'INGRESO' ? '+' : '-'}
                         {formatCurrency(Number(movimiento.monto))}
                       </TableCell>

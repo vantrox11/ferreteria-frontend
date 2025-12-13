@@ -88,6 +88,8 @@ export const KardexFilters: React.FC<KardexFiltersProps> = ({
               <SelectItem value="compra">Compras</SelectItem>
               <SelectItem value="ajuste_entrada">Ajustes +</SelectItem>
               <SelectItem value="ajuste_salida">Ajustes -</SelectItem>
+              <SelectItem value="devolucion_entrada">Devoluciones +</SelectItem>
+              <SelectItem value="devolucion_salida">Devoluciones -</SelectItem>
             </SelectContent>
           </Select>
         </div>

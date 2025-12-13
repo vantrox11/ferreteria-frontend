@@ -14,6 +14,7 @@ import { toast } from "sonner"
 
 import { useGetApiMarcas, usePatchApiMarcasIdDesactivar } from "@/api/generated/marcas/marcas"
 import type { Marca } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -79,9 +80,8 @@ export default function MarcasPageV2() {
         setDeactivateOpen(false)
         setConfirmMarca(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })

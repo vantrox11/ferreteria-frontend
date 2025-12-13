@@ -22,6 +22,10 @@ export interface ResumenCobranzas {
   total_vigentes: number;
   /** Total de cuentas vencidas */
   total_vencidas: number;
+  /** Total de cuentas que vencen en los próximos 7 días */
+  total_por_vencer: number;
+  /** Suma total de saldos pendientes */
+  monto_total: number;
   /** Suma de saldos pendientes vigentes */
   monto_vigente: number;
   /** Suma de saldos pendientes vencidos */

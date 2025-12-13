@@ -22,6 +22,7 @@ import {
 } from '@/api/generated/series-sunat/series-sunat'
 import { useGetApiCajas } from '@/api/generated/cajas/cajas'
 import type { Serie } from '@/api/generated/model'
+import { getErrorMessage } from '@/lib/api-error'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -165,8 +166,8 @@ export default function AdminSeriesPage() {
       setShowCreateDialog(false)
       createForm.reset()
       queryClient.invalidateQueries({ queryKey: ['/api/series'] })
-    } catch (error: any) {
-      toast.error('Error al crear serie')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
     }
   }
 
@@ -248,7 +249,7 @@ export default function AdminSeriesPage() {
           const tipo = row.original.tipo_comprobante
           const Icon = TIPO_COMPROBANTE_ICONS[tipo]
           const variant = TIPO_COMPROBANTE_VARIANTS[tipo] || 'outline'
-          const tipoLabel = tipo.replace('_', ' ').split(' ').map(word => 
+          const tipoLabel = tipo.replace('_', ' ').split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
           ).join(' ')
           return (
@@ -569,7 +570,7 @@ export default function AdminSeriesPage() {
                   render={({ field }) => {
                     const tipoSeleccionado = createForm.watch('tipo_comprobante')
                     const esObligatorio = requiereCaja(tipoSeleccionado)
-                    
+
                     return (
                       <FormItem>
                         <FormLabel>
@@ -594,7 +595,7 @@ export default function AdminSeriesPage() {
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          {esObligatorio 
+                          {esObligatorio
                             ? '⚠️ Facturas y boletas DEBEN estar asignadas a una caja para POS'
                             : 'Las notas de venta pueden asignarse a caja o dejarse globales'}
                         </FormDescription>
@@ -604,7 +605,7 @@ export default function AdminSeriesPage() {
                   }}
                 />
               )}
-              
+
               {/* Mensaje informativo para NC y GRE */}
               {['NOTA_CREDITO', 'GUIA_REMISION'].includes(createForm.watch('tipo_comprobante')) && (
                 <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
@@ -685,7 +686,7 @@ export default function AdminSeriesPage() {
                     render={({ field }) => {
                       const tipoSeleccionado = editForm.watch('tipo_comprobante')
                       const esObligatorio = requiereCaja(tipoSeleccionado)
-                      
+
                       return (
                         <FormItem>
                           <FormLabel>
@@ -710,7 +711,7 @@ export default function AdminSeriesPage() {
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            {esObligatorio 
+                            {esObligatorio
                               ? '⚠️ Facturas y boletas DEBEN estar asignadas a una caja para POS'
                               : 'Las notas de venta pueden asignarse a caja o dejarse globales'}
                           </FormDescription>
@@ -720,7 +721,7 @@ export default function AdminSeriesPage() {
                     }}
                   />
                 )}
-                
+
                 {/* Mensaje informativo para NC y GRE */}
                 {['NOTA_CREDITO', 'GUIA_REMISION'].includes(editForm.watch('tipo_comprobante')) && (
                   <div className="rounded-md border border-blue-200 bg-blue-50 p-4">

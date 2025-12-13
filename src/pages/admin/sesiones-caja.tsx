@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 
 import { useGetApiSesionesCajaHistorial, usePostApiSesionesCajaIdCierreAdministrativo } from '@/api/generated/sesiones-de-caja/sesiones-de-caja'
 import type { SesionCaja } from '@/api/generated/model'
+import { getErrorMessage } from '@/lib/api-error'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -77,17 +78,17 @@ export default function AdminSesionesPage() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const { data: sesionesResponse, isLoading, refetch } = useGetApiSesionesCajaHistorial()
-  const sesiones = React.useMemo(() => 
+  const sesiones = React.useMemo(() =>
     (sesionesResponse?.data ?? []).filter((s: { estado: string }) => s.estado === 'ABIERTA'),
     [sesionesResponse]
   )
 
   const { mutateAsync: cerrarAdministrativamente } = usePostApiSesionesCajaIdCierreAdministrativo({
     mutation: {
-      onError: (error: any) => {
+      onError: (error) => {
         console.error('Error en mutation:', error)
         toast.error('Error al cerrar sesión', {
-          description: error?.response?.data?.message || error?.message || 'Error desconocido',
+          description: getErrorMessage(error),
         })
       }
     }
@@ -122,7 +123,7 @@ export default function AdminSesionesPage() {
     try {
       // Cerrar modal INMEDIATAMENTE para evitar re-renders
       setShowCierreModal(false)
-      
+
       await cerrarAdministrativamente({
         id: sesionId,
         data: {
@@ -138,20 +139,19 @@ export default function AdminSesionesPage() {
       toast.success('Sesión cerrada administrativamente', {
         description: `Sesión de ${usuarioNombre} cerrada con éxito`,
       })
-      
+
       // Refetch después de un delay para evitar race conditions
       setTimeout(() => {
         refetch()
       }, 500)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error en cierre administrativo:', error)
-      
+
       // Re-abrir modal en caso de error
       setShowCierreModal(true)
-      
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error desconocido al cerrar sesión'
+
       toast.error('Error al cerrar sesión', {
-        description: errorMessage,
+        description: getErrorMessage(error),
         duration: 5000,
       })
     }

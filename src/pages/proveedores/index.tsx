@@ -14,6 +14,7 @@ import { toast } from "sonner"
 
 import { useGetApiProveedores, usePatchApiProveedoresIdDesactivar } from "@/api/generated/proveedores/proveedores"
 import type { Proveedor } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -76,9 +77,8 @@ export default function ProveedoresPageV2() {
         setDeactivateOpen(false)
         setConfirmProveedor(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })

@@ -3,11 +3,16 @@ import CajaCard from "@/components/caja/CajaCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useGetApiSesionesCajaMonitorActivo } from "@/api/generated/sesiones-de-caja/sesiones-de-caja";
 
+interface MonitorActivoTabProps {
+  isAdmin?: boolean;
+}
+
 /**
  * Tab "Monitor Activo"
  * Grid de cards mostrando todas las cajas ABIERTAS con KPIs en tiempo real
+ * Solo visible para administradores
  */
-export default function MonitorActivoTab() {
+export default function MonitorActivoTab({ isAdmin = false }: MonitorActivoTabProps) {
   const { data, isLoading, error } = useGetApiSesionesCajaMonitorActivo();
   const cajasAbiertas = data?.data || [];
 
@@ -50,7 +55,7 @@ export default function MonitorActivoTab() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {cajasAbiertas.map((caja) => (
-        <CajaCard key={caja.id} caja={caja} />
+        <CajaCard key={caja.id} caja={caja} isAdmin={isAdmin} />
       ))}
     </div>
   );

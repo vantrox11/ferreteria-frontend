@@ -8,7 +8,7 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, Loader2, DollarSign, Calendar, AlertCircle, Clock, CheckCircle2, XCircle, TrendingUp } from "lucide-react"
+import { ArrowUpDown, ChevronDown, Loader2, DollarSign, Calendar, AlertCircle, Clock, CheckCircle2, XCircle } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -19,7 +19,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { useGetApiCobranzas, useGetApiCobranzasResumen, usePostApiCobranzasIdPagos } from "@/api/generated/cobranzas/cobranzas"
 import { useGetApiClientes } from "@/api/generated/clientes/clientes"
-import type { CuentaPorCobrar, Pago } from "@/api/generated/model"
+import type { CuentaPorCobrar, GetApiCobranzasEstado } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -76,7 +77,7 @@ function formatCurrency(value: string | number | null | undefined) {
 
 const pagoSchema = z.object({
   monto: z.number().positive("El monto debe ser mayor a 0"),
-  metodo_pago: z.enum(["EFECTIVO", "TARJETA", "TRANSFERENCIA", "YAPE", "PLIN", "DEPOSITO", "CHEQUE"]),
+  metodo_pago: z.enum(["EFECTIVO", "TARJETA", "TRANSFERENCIA", "YAPE", "PLIN", "CHEQUE", "OTROS"]),
   referencia: z.string().optional(),
   notas: z.string().optional(),
 });
@@ -109,7 +110,7 @@ export default function CobranzasPage() {
     page: currentPage,
     limit: pageSize,
     cliente_id: clienteId !== "all" ? Number(clienteId) : undefined,
-    estado: estado !== "all" ? estado as any : undefined,
+    estado: estado !== "all" ? estado as GetApiCobranzasEstado : undefined,
   })
 
   const { data: resumenData } = useGetApiCobranzasResumen()
@@ -124,7 +125,7 @@ export default function CobranzasPage() {
     resolver: zodResolver(pagoSchema),
     defaultValues: {
       monto: 0,
-      metodo_pago: "efectivo",
+      metodo_pago: "EFECTIVO",
       referencia: "",
     },
   })
@@ -140,9 +141,8 @@ export default function CobranzasPage() {
         setSelectedCuenta(null)
         form.reset()
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "Error al registrar pago"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err, "Error al registrar pago"))
       },
     },
   })
@@ -160,7 +160,7 @@ export default function CobranzasPage() {
 
   async function onSubmitPago(values: PagoFormValues) {
     if (!selectedCuenta) return
-    
+
     await registrarPagoMutation.mutateAsync({
       id: selectedCuenta.id!,
       data: values,
@@ -246,12 +246,12 @@ export default function CobranzasPage() {
         cell: ({ row }) => {
           const fecha = row.original.fecha_vencimiento;
           if (!fecha) return <span className="text-sm text-muted-foreground">—</span>;
-          
+
           const vencimiento = new Date(fecha);
           const hoy = new Date();
           const esVencida = vencimiento < hoy;
           const fechaTexto = format(vencimiento, "dd MMM yyyy", { locale: es });
-          
+
           if (esVencida) {
             return (
               <Badge variant="destructive" className="gap-1.5">
@@ -260,7 +260,7 @@ export default function CobranzasPage() {
               </Badge>
             );
           }
-          
+
           return (
             <div className="flex items-center gap-1.5 text-sm">
               <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -274,7 +274,7 @@ export default function CobranzasPage() {
         header: "Estado",
         cell: ({ row }) => {
           const estado = row.original.estado;
-          
+
           if (estado === "PAGADA") {
             return (
               <Badge variant="secondary" className="gap-1.5">
@@ -283,7 +283,7 @@ export default function CobranzasPage() {
               </Badge>
             );
           }
-          
+
           if (estado === "VENCIDA") {
             return (
               <Badge variant="destructive" className="gap-1.5">
@@ -292,7 +292,7 @@ export default function CobranzasPage() {
               </Badge>
             );
           }
-          
+
           if (estado === "POR_VENCER") {
             return (
               <Badge className="gap-1.5">
@@ -301,7 +301,7 @@ export default function CobranzasPage() {
               </Badge>
             );
           }
-          
+
           if (estado === "VIGENTE") {
             return (
               <Badge variant="outline" className="gap-1.5">
@@ -310,7 +310,7 @@ export default function CobranzasPage() {
               </Badge>
             );
           }
-          
+
           return (
             <Badge variant="secondary" className="gap-1.5">
               <XCircle className="h-3 w-3" />

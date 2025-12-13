@@ -11,6 +11,7 @@ import { AlertCircle, FileText, FileDown } from "lucide-react";
 import { KardexFilters } from "@/components/KardexFilters";
 import { KardexTable } from "@/components/KardexTable";
 import { useGetApiReportesKardexProductoId } from "@/api/generated/reportes/reportes";
+import type { KardexCompletoProducto, KardexCompletoMovimientosItem } from "@/api/generated/model";
 import { toast } from "sonner";
 
 const KardexPage = () => {
@@ -71,7 +72,7 @@ const KardexPage = () => {
     }
   };
 
-  const generarCSV = (producto: any, movimientos: any[]) => {
+  const generarCSV = (producto: KardexCompletoProducto, movimientos: KardexCompletoMovimientosItem[]) => {
     const headers = [
       "Fecha",
       "Tipo",

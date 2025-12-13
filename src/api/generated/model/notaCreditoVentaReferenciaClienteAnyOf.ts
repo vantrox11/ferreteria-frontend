@@ -17,9 +17,13 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 import type { NotaCreditoVentaReferenciaClienteAnyOfDocumentoIdentidad } from "./notaCreditoVentaReferenciaClienteAnyOfDocumentoIdentidad";
+import type { NotaCreditoVentaReferenciaClienteAnyOfRuc } from "./notaCreditoVentaReferenciaClienteAnyOfRuc";
+import type { NotaCreditoVentaReferenciaClienteAnyOfRazonSocial } from "./notaCreditoVentaReferenciaClienteAnyOfRazonSocial";
 
 export type NotaCreditoVentaReferenciaClienteAnyOf = {
   id: number;
   nombre: string;
   documento_identidad: NotaCreditoVentaReferenciaClienteAnyOfDocumentoIdentidad;
+  ruc: NotaCreditoVentaReferenciaClienteAnyOfRuc;
+  razon_social: NotaCreditoVentaReferenciaClienteAnyOfRazonSocial;
 };

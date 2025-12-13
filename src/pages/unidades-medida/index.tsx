@@ -22,6 +22,7 @@ import {
   usePutApiUnidadesMedidaId,
 } from "@/api/generated/unidades-de-medida/unidades-de-medida"
 import type { UnidadMedida } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -133,9 +134,8 @@ export default function UnidadesMedidaPageV2() {
         setCreateOpen(false)
         createForm.reset()
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo crear"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })
@@ -149,9 +149,8 @@ export default function UnidadesMedidaPageV2() {
         setEditingUnidad(null)
         editForm.reset()
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo actualizar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })
@@ -164,9 +163,8 @@ export default function UnidadesMedidaPageV2() {
         setDeleteOpen(false)
         setConfirmUnidad(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo eliminar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })

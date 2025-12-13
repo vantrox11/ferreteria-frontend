@@ -30,29 +30,21 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
-  DashboardVentasEstadisticas,
-  GetApiDashboardGeneral200,
+  DashboardGeneral,
+  DashboardVentas,
   GetApiDashboardGeneral400,
   GetApiDashboardGeneral401,
   GetApiDashboardGeneral403,
   GetApiDashboardGeneral404,
   GetApiDashboardGeneral409,
   GetApiDashboardGeneral500,
-  GetApiDashboardVentasAnalisis200,
-  GetApiDashboardVentasAnalisis400,
-  GetApiDashboardVentasAnalisis401,
-  GetApiDashboardVentasAnalisis403,
-  GetApiDashboardVentasAnalisis404,
-  GetApiDashboardVentasAnalisis409,
-  GetApiDashboardVentasAnalisis500,
-  GetApiDashboardVentasAnalisisParams,
-  GetApiDashboardVentasEstadisticas400,
-  GetApiDashboardVentasEstadisticas401,
-  GetApiDashboardVentasEstadisticas403,
-  GetApiDashboardVentasEstadisticas404,
-  GetApiDashboardVentasEstadisticas409,
-  GetApiDashboardVentasEstadisticas500,
-  GetApiDashboardVentasEstadisticasParams,
+  GetApiDashboardVentas400,
+  GetApiDashboardVentas401,
+  GetApiDashboardVentas403,
+  GetApiDashboardVentas404,
+  GetApiDashboardVentas409,
+  GetApiDashboardVentas500,
+  GetApiDashboardVentasParams,
 } from ".././model";
 
 import { customInstance } from "../../mutator/custom-instance";
@@ -61,14 +53,25 @@ import type { ErrorType } from "../../mutator/custom-instance";
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * Retorna KPIs de salud financiera, ventas últimos 30 días, ventas por vendedor, facturas pendientes SUNAT y productos críticos
- * @summary Dashboard General (Home / Vista del Dueño)
+ * 
+    Retorna los signos vitales del negocio:
+    - Liquidez desglosada (efectivo en cajas/disponible total)
+    - Utilidad bruta real con comparación vs período anterior
+    - Cuentas por cobrar vencidas
+    - Valor del inventario
+    - Gráfico de flujo de caja (30 días)
+    - Ticket promedio (30 días)
+    - Alertas de quiebre inminente de stock
+    - Top 5 deudores
+    - Porcentaje de ventas a crédito
+  
+ * @summary Dashboard General (Torre de Control / CEO)
  */
 export const getApiDashboardGeneral = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetApiDashboardGeneral200>(
+  return customInstance<DashboardGeneral>(
     { url: `/api/dashboard/general`, method: "GET", signal },
     options,
   );
@@ -218,7 +221,7 @@ export function useGetApiDashboardGeneral<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Dashboard General (Home / Vista del Dueño)
+ * @summary Dashboard General (Torre de Control / CEO)
  */
 
 export function useGetApiDashboardGeneral<
@@ -259,45 +262,53 @@ export function useGetApiDashboardGeneral<
 }
 
 /**
- * Retorna KPIs de rendimiento, ventas por categoría, métodos de pago, top 10 productos y top 10 clientes
- * @summary Dashboard de Ventas (Análisis Comercial)
+ * 
+    Retorna análisis comercial completo:
+    - Ventas totales netas con comparación
+    - Margen promedio ponderado
+    - Tasa de recurrencia (fidelización)
+    - Tasa de devoluciones
+    - Top 10 productos por rotación (unidades)
+    - Top 10 productos por rentabilidad (utilidad)
+    - Ranking de vendedores por utilidad generada
+    - Mapa de calor horario
+    - Distribución efectivo vs crédito
+  
+ * @summary Dashboard de Ventas (Motor Comercial / Gerente)
  */
-export const getApiDashboardVentasAnalisis = (
-  params?: GetApiDashboardVentasAnalisisParams,
+export const getApiDashboardVentas = (
+  params?: GetApiDashboardVentasParams,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetApiDashboardVentasAnalisis200>(
-    { url: `/api/dashboard/ventas/analisis`, method: "GET", params, signal },
+  return customInstance<DashboardVentas>(
+    { url: `/api/dashboard/ventas`, method: "GET", params, signal },
     options,
   );
 };
 
-export const getGetApiDashboardVentasAnalisisQueryKey = (
-  params?: GetApiDashboardVentasAnalisisParams,
+export const getGetApiDashboardVentasQueryKey = (
+  params?: GetApiDashboardVentasParams,
 ) => {
-  return [
-    `/api/dashboard/ventas/analisis`,
-    ...(params ? [params] : []),
-  ] as const;
+  return [`/api/dashboard/ventas`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiDashboardVentasAnalisisQueryOptions = <
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+export const getGetApiDashboardVentasQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiDashboardVentas>>,
   TError = ErrorType<
-    | GetApiDashboardVentasAnalisis400
-    | GetApiDashboardVentasAnalisis401
-    | GetApiDashboardVentasAnalisis403
-    | GetApiDashboardVentasAnalisis404
-    | GetApiDashboardVentasAnalisis409
-    | GetApiDashboardVentasAnalisis500
+    | GetApiDashboardVentas400
+    | GetApiDashboardVentas401
+    | GetApiDashboardVentas403
+    | GetApiDashboardVentas404
+    | GetApiDashboardVentas409
+    | GetApiDashboardVentas500
   >,
 >(
-  params?: GetApiDashboardVentasAnalisisParams,
+  params?: GetApiDashboardVentasParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+        Awaited<ReturnType<typeof getApiDashboardVentas>>,
         TError,
         TData
       >
@@ -308,57 +319,56 @@ export const getGetApiDashboardVentasAnalisisQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getGetApiDashboardVentasAnalisisQueryKey(params);
+    queryOptions?.queryKey ?? getGetApiDashboardVentasQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>
-  > = ({ signal }) =>
-    getApiDashboardVentasAnalisis(params, requestOptions, signal);
+    Awaited<ReturnType<typeof getApiDashboardVentas>>
+  > = ({ signal }) => getApiDashboardVentas(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+    Awaited<ReturnType<typeof getApiDashboardVentas>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiDashboardVentasAnalisisQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>
+export type GetApiDashboardVentasQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDashboardVentas>>
 >;
-export type GetApiDashboardVentasAnalisisQueryError = ErrorType<
-  | GetApiDashboardVentasAnalisis400
-  | GetApiDashboardVentasAnalisis401
-  | GetApiDashboardVentasAnalisis403
-  | GetApiDashboardVentasAnalisis404
-  | GetApiDashboardVentasAnalisis409
-  | GetApiDashboardVentasAnalisis500
+export type GetApiDashboardVentasQueryError = ErrorType<
+  | GetApiDashboardVentas400
+  | GetApiDashboardVentas401
+  | GetApiDashboardVentas403
+  | GetApiDashboardVentas404
+  | GetApiDashboardVentas409
+  | GetApiDashboardVentas500
 >;
 
-export function useGetApiDashboardVentasAnalisis<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+export function useGetApiDashboardVentas<
+  TData = Awaited<ReturnType<typeof getApiDashboardVentas>>,
   TError = ErrorType<
-    | GetApiDashboardVentasAnalisis400
-    | GetApiDashboardVentasAnalisis401
-    | GetApiDashboardVentasAnalisis403
-    | GetApiDashboardVentasAnalisis404
-    | GetApiDashboardVentasAnalisis409
-    | GetApiDashboardVentasAnalisis500
+    | GetApiDashboardVentas400
+    | GetApiDashboardVentas401
+    | GetApiDashboardVentas403
+    | GetApiDashboardVentas404
+    | GetApiDashboardVentas409
+    | GetApiDashboardVentas500
   >,
 >(
-  params: undefined | GetApiDashboardVentasAnalisisParams,
+  params: undefined | GetApiDashboardVentasParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+        Awaited<ReturnType<typeof getApiDashboardVentas>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+          Awaited<ReturnType<typeof getApiDashboardVentas>>,
           TError,
-          Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>
+          Awaited<ReturnType<typeof getApiDashboardVentas>>
         >,
         "initialData"
       >;
@@ -368,31 +378,31 @@ export function useGetApiDashboardVentasAnalisis<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetApiDashboardVentasAnalisis<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+export function useGetApiDashboardVentas<
+  TData = Awaited<ReturnType<typeof getApiDashboardVentas>>,
   TError = ErrorType<
-    | GetApiDashboardVentasAnalisis400
-    | GetApiDashboardVentasAnalisis401
-    | GetApiDashboardVentasAnalisis403
-    | GetApiDashboardVentasAnalisis404
-    | GetApiDashboardVentasAnalisis409
-    | GetApiDashboardVentasAnalisis500
+    | GetApiDashboardVentas400
+    | GetApiDashboardVentas401
+    | GetApiDashboardVentas403
+    | GetApiDashboardVentas404
+    | GetApiDashboardVentas409
+    | GetApiDashboardVentas500
   >,
 >(
-  params?: GetApiDashboardVentasAnalisisParams,
+  params?: GetApiDashboardVentasParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+        Awaited<ReturnType<typeof getApiDashboardVentas>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+          Awaited<ReturnType<typeof getApiDashboardVentas>>,
           TError,
-          Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>
+          Awaited<ReturnType<typeof getApiDashboardVentas>>
         >,
         "initialData"
       >;
@@ -402,22 +412,22 @@ export function useGetApiDashboardVentasAnalisis<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetApiDashboardVentasAnalisis<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+export function useGetApiDashboardVentas<
+  TData = Awaited<ReturnType<typeof getApiDashboardVentas>>,
   TError = ErrorType<
-    | GetApiDashboardVentasAnalisis400
-    | GetApiDashboardVentasAnalisis401
-    | GetApiDashboardVentasAnalisis403
-    | GetApiDashboardVentasAnalisis404
-    | GetApiDashboardVentasAnalisis409
-    | GetApiDashboardVentasAnalisis500
+    | GetApiDashboardVentas400
+    | GetApiDashboardVentas401
+    | GetApiDashboardVentas403
+    | GetApiDashboardVentas404
+    | GetApiDashboardVentas409
+    | GetApiDashboardVentas500
   >,
 >(
-  params?: GetApiDashboardVentasAnalisisParams,
+  params?: GetApiDashboardVentasParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+        Awaited<ReturnType<typeof getApiDashboardVentas>>,
         TError,
         TData
       >
@@ -429,25 +439,25 @@ export function useGetApiDashboardVentasAnalisis<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Dashboard de Ventas (Análisis Comercial)
+ * @summary Dashboard de Ventas (Motor Comercial / Gerente)
  */
 
-export function useGetApiDashboardVentasAnalisis<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+export function useGetApiDashboardVentas<
+  TData = Awaited<ReturnType<typeof getApiDashboardVentas>>,
   TError = ErrorType<
-    | GetApiDashboardVentasAnalisis400
-    | GetApiDashboardVentasAnalisis401
-    | GetApiDashboardVentasAnalisis403
-    | GetApiDashboardVentasAnalisis404
-    | GetApiDashboardVentasAnalisis409
-    | GetApiDashboardVentasAnalisis500
+    | GetApiDashboardVentas400
+    | GetApiDashboardVentas401
+    | GetApiDashboardVentas403
+    | GetApiDashboardVentas404
+    | GetApiDashboardVentas409
+    | GetApiDashboardVentas500
   >,
 >(
-  params?: GetApiDashboardVentasAnalisisParams,
+  params?: GetApiDashboardVentasParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasAnalisis>>,
+        Awaited<ReturnType<typeof getApiDashboardVentas>>,
         TError,
         TData
       >
@@ -458,231 +468,7 @@ export function useGetApiDashboardVentasAnalisis<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetApiDashboardVentasAnalisisQueryOptions(
-    params,
-    options,
-  );
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey;
-
-  return query;
-}
-
-/**
- * Retorna KPIs, serie temporal, top productos rentables y rentabilidad por categoría. Permite filtrar por rango de fechas.
- * @summary Obtener estadísticas del dashboard de ventas
- */
-export const getApiDashboardVentasEstadisticas = (
-  params?: GetApiDashboardVentasEstadisticasParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
-) => {
-  return customInstance<DashboardVentasEstadisticas>(
-    {
-      url: `/api/dashboard/ventas/estadisticas`,
-      method: "GET",
-      params,
-      signal,
-    },
-    options,
-  );
-};
-
-export const getGetApiDashboardVentasEstadisticasQueryKey = (
-  params?: GetApiDashboardVentasEstadisticasParams,
-) => {
-  return [
-    `/api/dashboard/ventas/estadisticas`,
-    ...(params ? [params] : []),
-  ] as const;
-};
-
-export const getGetApiDashboardVentasEstadisticasQueryOptions = <
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-  TError = ErrorType<
-    | GetApiDashboardVentasEstadisticas400
-    | GetApiDashboardVentasEstadisticas401
-    | GetApiDashboardVentasEstadisticas403
-    | GetApiDashboardVentasEstadisticas404
-    | GetApiDashboardVentasEstadisticas409
-    | GetApiDashboardVentasEstadisticas500
-  >,
->(
-  params?: GetApiDashboardVentasEstadisticasParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetApiDashboardVentasEstadisticasQueryKey(params);
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>
-  > = ({ signal }) =>
-    getApiDashboardVentasEstadisticas(params, requestOptions, signal);
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetApiDashboardVentasEstadisticasQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>
->;
-export type GetApiDashboardVentasEstadisticasQueryError = ErrorType<
-  | GetApiDashboardVentasEstadisticas400
-  | GetApiDashboardVentasEstadisticas401
-  | GetApiDashboardVentasEstadisticas403
-  | GetApiDashboardVentasEstadisticas404
-  | GetApiDashboardVentasEstadisticas409
-  | GetApiDashboardVentasEstadisticas500
->;
-
-export function useGetApiDashboardVentasEstadisticas<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-  TError = ErrorType<
-    | GetApiDashboardVentasEstadisticas400
-    | GetApiDashboardVentasEstadisticas401
-    | GetApiDashboardVentasEstadisticas403
-    | GetApiDashboardVentasEstadisticas404
-    | GetApiDashboardVentasEstadisticas409
-    | GetApiDashboardVentasEstadisticas500
-  >,
->(
-  params: undefined | GetApiDashboardVentasEstadisticasParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-          TError,
-          Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetApiDashboardVentasEstadisticas<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-  TError = ErrorType<
-    | GetApiDashboardVentasEstadisticas400
-    | GetApiDashboardVentasEstadisticas401
-    | GetApiDashboardVentasEstadisticas403
-    | GetApiDashboardVentasEstadisticas404
-    | GetApiDashboardVentasEstadisticas409
-    | GetApiDashboardVentasEstadisticas500
-  >,
->(
-  params?: GetApiDashboardVentasEstadisticasParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-          TError,
-          Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetApiDashboardVentasEstadisticas<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-  TError = ErrorType<
-    | GetApiDashboardVentasEstadisticas400
-    | GetApiDashboardVentasEstadisticas401
-    | GetApiDashboardVentasEstadisticas403
-    | GetApiDashboardVentasEstadisticas404
-    | GetApiDashboardVentasEstadisticas409
-    | GetApiDashboardVentasEstadisticas500
-  >,
->(
-  params?: GetApiDashboardVentasEstadisticasParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-/**
- * @summary Obtener estadísticas del dashboard de ventas
- */
-
-export function useGetApiDashboardVentasEstadisticas<
-  TData = Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-  TError = ErrorType<
-    | GetApiDashboardVentasEstadisticas400
-    | GetApiDashboardVentasEstadisticas401
-    | GetApiDashboardVentasEstadisticas403
-    | GetApiDashboardVentasEstadisticas404
-    | GetApiDashboardVentasEstadisticas409
-    | GetApiDashboardVentasEstadisticas500
-  >,
->(
-  params?: GetApiDashboardVentasEstadisticasParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getApiDashboardVentasEstadisticas>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetApiDashboardVentasEstadisticasQueryOptions(
-    params,
-    options,
-  );
+  const queryOptions = getGetApiDashboardVentasQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

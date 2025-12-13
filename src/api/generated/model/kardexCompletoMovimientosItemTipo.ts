@@ -29,4 +29,6 @@ export const KardexCompletoMovimientosItemTipo = {
   compra: "compra",
   ajuste_entrada: "ajuste_entrada",
   ajuste_salida: "ajuste_salida",
+  devolucion_entrada: "devolucion_entrada",
+  devolucion_salida: "devolucion_salida",
 } as const;

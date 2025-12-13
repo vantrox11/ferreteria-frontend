@@ -17,15 +17,18 @@ import {
   usePatchApiTenantConfiguracionFiscal,
 } from "@/api/generated/tenant/tenant";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-import type { TenantConfiguracion } from "@/api/generated/model";
+import type { TenantConfiguracion, TenantConfiguracionConfiguracionAnyOf } from "@/api/generated/model";
+import { getErrorMessage } from "@/lib/api-error";
 
 // Componente para editar información de la empresa
 function EmpresaForm({ configData, queryClient }: { configData: TenantConfiguracion | undefined, queryClient: QueryClient }) {
+  // Acceso type-safe a configuracion.empresa
+  const empresaConfig = configData?.configuracion?.empresa;
   const [nombreEmpresa, setNombreEmpresa] = useState(configData?.nombre_empresa || "");
-  const [ruc, setRuc] = useState((configData?.configuracion as any)?.empresa?.ruc || "");
-  const [direccion, setDireccion] = useState((configData?.configuracion as any)?.empresa?.direccion || "");
-  const [telefono, setTelefono] = useState((configData?.configuracion as any)?.empresa?.telefono || "");
-  const [email, setEmail] = useState((configData?.configuracion as any)?.empresa?.email || "");
+  const [ruc, setRuc] = useState(empresaConfig?.ruc || "");
+  const [direccion, setDireccion] = useState(empresaConfig?.direccion || "");
+  const [telefono, setTelefono] = useState(empresaConfig?.telefono || "");
+  const [email, setEmail] = useState(empresaConfig?.email || "");
 
   const updateConfigMutation = usePutApiTenantConfiguracion({
     mutation: {
@@ -33,9 +36,8 @@ function EmpresaForm({ configData, queryClient }: { configData: TenantConfigurac
         queryClient.invalidateQueries({ queryKey: ['/api/tenant/configuracion'] });
         toast.success("Datos de empresa actualizados");
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo actualizar";
-        toast.error(message);
+      onError: (err) => {
+        toast.error(getErrorMessage(err));
       },
     },
   });
@@ -52,14 +54,14 @@ function EmpresaForm({ configData, queryClient }: { configData: TenantConfigurac
       data: {
         nombre_empresa: nombreEmpresa,
         configuracion: {
-          ...(configData?.configuracion as any || {}),
+          ...(configData?.configuracion || {}),
           empresa: {
             ruc,
             direccion,
             telefono,
             email,
           },
-        },
+        } as TenantConfiguracionConfiguracionAnyOf,
       },
     });
   }
@@ -160,11 +162,12 @@ function EmpresaForm({ configData, queryClient }: { configData: TenantConfigurac
               type="button"
               variant="outline"
               onClick={() => {
+                const empresaData = configData?.configuracion?.empresa;
                 setNombreEmpresa(configData?.nombre_empresa || "");
-                setRuc((configData?.configuracion as any)?.empresa?.ruc || "");
-                setDireccion((configData?.configuracion as any)?.empresa?.direccion || "");
-                setTelefono((configData?.configuracion as any)?.empresa?.telefono || "");
-                setEmail((configData?.configuracion as any)?.empresa?.email || "");
+                setRuc(empresaData?.ruc || "");
+                setDireccion(empresaData?.direccion || "");
+                setTelefono(empresaData?.telefono || "");
+                setEmail(empresaData?.email || "");
               }}
             >
               Cancelar
@@ -213,9 +216,8 @@ const ConfiguracionPage = () => {
         queryClient.invalidateQueries({ queryKey: ['/api/tenant/configuracion'] });
         toast.success("Configuración fiscal actualizada");
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo actualizar";
-        toast.error(message);
+      onError: (err) => {
+        toast.error(getErrorMessage(err));
       },
     },
   });
@@ -232,7 +234,7 @@ const ConfiguracionPage = () => {
 
   function handleSaveFiscal(e: React.FormEvent) {
     e.preventDefault();
-    
+
     const tasa = parseFloat(tasaImpuesto);
     if (isNaN(tasa) || tasa < 0 || tasa > 100) {
       toast.error("La tasa de impuesto debe estar entre 0 y 100");
@@ -301,7 +303,7 @@ const ConfiguracionPage = () => {
                 {/* SECCIÓN: CONFIGURACIÓN DE IMPUESTO */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium">Configuración del Impuesto</h3>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="impuesto-nombre">

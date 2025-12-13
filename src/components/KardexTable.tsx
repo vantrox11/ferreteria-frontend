@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertCircle, RefreshCw } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { KardexCompletoMovimientosItem } from "@/api/generated/model";
 import { formatCurrency } from "@/hooks/usePurchaseOrderCalculator";
@@ -45,7 +46,9 @@ export const KardexTable: React.FC<KardexTableProps> = ({
     if (filtered.length > 0) {
       let saldoAcumulado = 0;
       filtered = filtered.map((mov) => {
-        if (mov.tipo === "compra" || mov.tipo === "ajuste_entrada") {
+        // Entradas: compra, ajuste_entrada, devolucion_entrada
+        const esEntrada = mov.tipo === "compra" || mov.tipo === "ajuste_entrada" || mov.tipo === "devolucion_entrada";
+        if (esEntrada) {
           saldoAcumulado += mov.cantidad;
         } else {
           saldoAcumulado -= mov.cantidad;
@@ -58,14 +61,16 @@ export const KardexTable: React.FC<KardexTableProps> = ({
   }, [movimientos, tipoFiltro, fechaInicio, fechaFin]);
 
   const getTipoBadge = (tipo: string) => {
-    const config: Record<string, { variant: any; label: string; icon: any; className?: string }> = {
+    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string; icon: LucideIcon; className?: string }> = {
       compra: { variant: "default", label: "Compra", icon: TrendingUp },
       venta: { variant: "destructive", label: "Venta", icon: TrendingDown },
       ajuste_entrada: { variant: "secondary", label: "Ajuste +", icon: TrendingUp },
       ajuste_salida: { variant: "outline", label: "Ajuste -", icon: TrendingDown },
+      devolucion_entrada: { variant: "secondary", label: "Devolución +", icon: RefreshCw, className: "bg-blue-100 text-blue-700 border-blue-200" },
+      devolucion_salida: { variant: "outline", label: "Devolución -", icon: RefreshCw, className: "text-orange-600 border-orange-300" },
     };
 
-    const item = config[tipo] || { variant: "outline", label: tipo, icon: AlertCircle };
+    const item = config[tipo] || { variant: "outline" as const, label: tipo, icon: AlertCircle };
     const Icon = item.icon;
 
     return (
@@ -122,7 +127,7 @@ export const KardexTable: React.FC<KardexTableProps> = ({
             </TableHeader>
             <TableBody>
               {movimientosFiltrados.map((mov, index) => {
-                const esEntrada = mov.tipo === "compra" || mov.tipo === "ajuste_entrada";
+                const esEntrada = mov.tipo === "compra" || mov.tipo === "ajuste_entrada" || mov.tipo === "devolucion_entrada";
 
                 return (
                   <TableRow key={index} className="border-t hover:bg-muted/50">

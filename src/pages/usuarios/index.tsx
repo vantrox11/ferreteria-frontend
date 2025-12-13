@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/auth/AuthContext"
 import { useGetApiUsuarios, usePatchApiUsuariosIdDesactivar } from "@/api/generated/usuarios/usuarios"
 import type { Usuario } from "@/api/generated/model"
+import { getErrorMessage } from "@/lib/api-error"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -92,9 +93,8 @@ export default function UsuariosPageV2() {
         setDeactivateOpen(false)
         setConfirmUsuario(null)
       },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
+      onError: (err) => {
+        toast.error(getErrorMessage(err))
       },
     },
   })
