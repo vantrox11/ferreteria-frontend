@@ -59,6 +59,7 @@ const data = {
     // Ventas
     { label: "Ventas" },
     { title: "Punto de Venta", url: "/dashboard/ventas", icon: ShoppingCartIcon },
+    { title: "POS V2", url: "/dashboard/ventas/pos-v2", icon: ShoppingCartIcon },
     { title: "Historial de Ventas", url: "/dashboard/ventas/historial-v2", icon: FileTextIcon },
     { title: "Notas de Crédito", url: "/dashboard/ventas/notas-credito-v2", icon: FileCheck },
     { title: "Guías de Remisión", url: "/dashboard/documentos/guias-remision-v2", icon: Truck },

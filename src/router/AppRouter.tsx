@@ -21,6 +21,7 @@ import ComprasPage from "@/pages/compras/index";
 import NuevaOrdenCompraFiscalPage from "@/pages/compras/nueva-fiscal";
 import KardexPage from "@/pages/kardex/index";
 import POSPage from "@/pages/ventas/POS";
+import POSV2Page from "@/pages/ventas/POSV2";
 import HistorialVentasPage from "@/pages/ventas/historial-v2";
 import NotasCreditoPage from "@/pages/ventas/notas-credito-v2";
 import GuiasRemisionPage from "@/pages/documentos/guias-remision-v2";
@@ -100,6 +101,7 @@ const AppRouter: React.FC = () => {
                         <Route path="kardex" element={<KardexPage />} />
 
                         <Route path="ventas" element={<POSPage />} />
+                        <Route path="ventas/pos-v2" element={<POSV2Page />} />
                         <Route path="ventas/historial-v2" element={<HistorialVentasPage />} />
                         <Route path="ventas/notas-credito-v2" element={<NotasCreditoPage />} />
 

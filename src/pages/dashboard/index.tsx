@@ -234,19 +234,21 @@ export default function DashboardPage() {
                     <CardContent className="pb-2">
                         <ResponsiveContainer width="100%" height={280}>
                             <BarChart data={data.flujo_caja_30d}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/30" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                                 <XAxis
                                     dataKey="fecha"
                                     tickFormatter={(v) => format(new Date(v), "dd MMM", { locale: es })}
                                     fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
+                                    className="fill-muted-foreground"
                                 />
                                 <YAxis
                                     tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                                     fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
+                                    className="fill-muted-foreground"
                                 />
                                 <Tooltip
                                     formatter={(value: number) => formatCurrency(value)}
@@ -258,8 +260,8 @@ export default function DashboardPage() {
                                         padding: '6px 8px',
                                     }}
                                 />
-                                <Bar dataKey="ingresos" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-                                <Bar dataKey="egresos" fill="hsl(var(--destructive))" radius={[3, 3, 0, 0]} />
+                                <Bar dataKey="ingresos" className="fill-primary" radius={[3, 3, 0, 0]} />
+                                <Bar dataKey="egresos" className="fill-destructive" radius={[3, 3, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -275,23 +277,25 @@ export default function DashboardPage() {
                             <AreaChart data={data.ticket_promedio_30d}>
                                 <defs>
                                     <linearGradient id="ticket" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/30" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                                 <XAxis
                                     dataKey="fecha"
                                     tickFormatter={(v) => format(new Date(v), "dd MMM", { locale: es })}
                                     fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
+                                    className="fill-muted-foreground"
                                 />
                                 <YAxis
                                     tickFormatter={(v) => `S/${v}`}
                                     fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
+                                    className="fill-muted-foreground"
                                 />
                                 <Tooltip
                                     formatter={(value: number) => formatCurrency(value)}
@@ -306,9 +310,9 @@ export default function DashboardPage() {
                                 <Area
                                     type="monotone"
                                     dataKey="ticket_promedio"
-                                    stroke="hsl(var(--primary))"
+                                    className="fill-primary stroke-primary"
                                     strokeWidth={2}
-                                    fill="url(#ticket)"
+                                    fillOpacity={0.2}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
