@@ -14,7 +14,9 @@ import {
   UsersIcon,
   BoxIcon,
   BoxesIcon,
-  TagsIcon,
+  FolderTree,
+  Medal,
+  Ruler,
   TruckIcon,
   ShoppingCartIcon,
   ShoppingBagIcon,
@@ -39,10 +41,61 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollAreaHiddenScrollbar } from "@/components/ui/scroll-area"
 // Eliminamos íconos de Tabler para mantener estética coherente con Lucide
 import { useAuth } from "@/auth/AuthContext"
+
+// Datos de navegación exportados para uso en Command y otros componentes
+export const navMainItems = [
+  // Dashboards
+  { label: "Dashboards" },
+  { title: "Dashboard General", url: "/dashboard", icon: LayoutDashboardIcon },
+  { title: "Dashboard Ventas", url: "/dashboard/dashboard-ventas-analisis", icon: BarChartIcon },
+
+  // Ventas
+  { label: "Ventas" },
+  { title: "Punto de Venta", url: "/dashboard/ventas", icon: ShoppingCartIcon },
+  { title: "Historial de Ventas", url: "/dashboard/ventas/historial-v2", icon: FileTextIcon },
+  { title: "Notas de Crédito", url: "/dashboard/ventas/notas-credito-v2", icon: FileCheck },
+  { title: "Guías de Remisión", url: "/dashboard/documentos/guias-remision-v2", icon: Truck },
+
+  // Clientes & Pedidos
+  { label: "Clientes & Pedidos" },
+  { title: "Clientes", url: "/dashboard/clientes", icon: UsersIcon },
+  { title: "Pedidos", url: "/dashboard/pedidos", icon: ClipboardCheckIcon },
+  { title: "Cuentas por Cobrar", url: "/dashboard/cobranzas", icon: DollarSignIcon },
+
+  // Inventario & Productos
+  { label: "Inventario & Productos" },
+  { title: "Productos", url: "/dashboard/productos", icon: PackageIcon },
+  { title: "Inventario", url: "/dashboard/inventario", icon: BoxesIcon },
+  { title: "Categorías", url: "/dashboard/categorias", icon: FolderTree },
+  { title: "Marcas", url: "/dashboard/marcas", icon: Medal },
+  { title: "Unidades de Medida", url: "/dashboard/unidades-medida", icon: Ruler },
+
+  // Compras
+  { label: "Compras" },
+  { title: "Órdenes de Compra", url: "/dashboard/compras", icon: ShoppingBagIcon },
+  { title: "Proveedores", url: "/dashboard/proveedores", icon: TruckIcon },
+
+  // Caja & Tesorería
+  { label: "Caja & Tesorería" },
+  { title: "Gestión de Cajas", url: "/dashboard/cajas", icon: Wallet },
+  { title: "Movimientos de Caja", url: "/dashboard/caja/movimientos", icon: ReceiptIcon },
+
+  // Reportes
+  { label: "Reportes" },
+  { title: "Kardex Fiscal", url: "/dashboard/kardex", icon: ClipboardListIcon },
+
+  // Administración
+  { label: "Administración" },
+  { title: "Configuración", url: "/dashboard/configuracion", icon: SettingsIcon },
+  { title: "Usuarios", url: "/dashboard/usuarios", icon: UserCogIcon },
+  { title: "Cajas (Maestro)", url: "/dashboard/admin/cajas", icon: BoxIcon },
+  { title: "Series SUNAT", url: "/dashboard/admin/series", icon: ShieldCheckIcon },
+];
 
 const data = {
   user: {
@@ -50,55 +103,7 @@ const data = {
     email: "m@example.com",
     avatar: "https://github.com/shadcn.png",
   },
-  navMain: [
-    // Dashboards
-    { label: "Dashboards" },
-    { title: "Dashboard General", url: "/dashboard", icon: LayoutDashboardIcon },
-    { title: "Dashboard Ventas", url: "/dashboard/dashboard-ventas-analisis", icon: BarChartIcon },
-
-    // Ventas
-    { label: "Ventas" },
-    { title: "Punto de Venta", url: "/dashboard/ventas", icon: ShoppingCartIcon },
-    { title: "POS V2", url: "/dashboard/ventas/pos-v2", icon: ShoppingCartIcon },
-    { title: "Historial de Ventas", url: "/dashboard/ventas/historial-v2", icon: FileTextIcon },
-    { title: "Notas de Crédito", url: "/dashboard/ventas/notas-credito-v2", icon: FileCheck },
-    { title: "Guías de Remisión", url: "/dashboard/documentos/guias-remision-v2", icon: Truck },
-
-    // Clientes & Pedidos
-    { label: "Clientes & Pedidos" },
-    { title: "Clientes", url: "/dashboard/clientes", icon: UsersIcon },
-    { title: "Pedidos", url: "/dashboard/pedidos", icon: ClipboardCheckIcon },
-    { title: "Cuentas por Cobrar", url: "/dashboard/cobranzas", icon: DollarSignIcon },
-
-    // Inventario & Productos
-    { label: "Inventario & Productos" },
-    { title: "Productos", url: "/dashboard/productos", icon: PackageIcon },
-    { title: "Inventario", url: "/dashboard/inventario", icon: BoxesIcon },
-    { title: "Categorías", url: "/dashboard/categorias", icon: TagsIcon },
-    { title: "Marcas", url: "/dashboard/marcas", icon: TagsIcon },
-    { title: "Unidades de Medida", url: "/dashboard/unidades-medida", icon: TagsIcon },
-
-    // Compras
-    { label: "Compras" },
-    { title: "Órdenes de Compra", url: "/dashboard/compras", icon: ShoppingBagIcon },
-    { title: "Proveedores", url: "/dashboard/proveedores", icon: TruckIcon },
-
-    // Caja & Tesorería
-    { label: "Caja & Tesorería" },
-    { title: "Gestión de Cajas", url: "/dashboard/cajas", icon: Wallet },
-    { title: "Movimientos de Caja", url: "/dashboard/caja/movimientos", icon: ReceiptIcon },
-
-    // Reportes
-    { label: "Reportes" },
-    { title: "Kardex Fiscal", url: "/dashboard/kardex", icon: ClipboardListIcon },
-    
-    // Administración
-    { label: "Administración" },
-    { title: "Configuración", url: "/dashboard/configuracion", icon: SettingsIcon },
-    { title: "Usuarios", url: "/dashboard/usuarios", icon: UserCogIcon },
-    { title: "Cajas (Maestro)", url: "/dashboard/admin/cajas", icon: BoxIcon },
-    { title: "Series SUNAT", url: "/dashboard/admin/series", icon: ShieldCheckIcon },
-  ],
+  navMain: navMainItems,
   navClouds: [
     {
       title: "Capture",
@@ -148,7 +153,7 @@ const data = {
     },
   ],
   navSecondary: [
-    
+
   ],
   documents: [
     {
@@ -171,6 +176,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
+  const { state } = useSidebar();
   const displayUser = {
     name: user?.email ? user.email.split("@")[0] : data.user.name,
     email: user?.email || data.user.email,
@@ -197,12 +203,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden group-data-[collapsible=icon]:[&_.scroll-area-scrollbar]:hidden">
-        <ScrollArea className="h-full w-full">
-          <div className="px-3 py-2 group-data-[collapsible=icon]:px-2">
-            <NavMain items={data.navMain} />
-          </div>
-        </ScrollArea>
+      <SidebarContent className="overflow-hidden">
+        {state === "collapsed" ? (
+          <ScrollAreaHiddenScrollbar className="h-full w-full">
+            <div className="flex flex-col items-center">
+              <NavMain items={data.navMain} />
+            </div>
+          </ScrollAreaHiddenScrollbar>
+        ) : (
+          <ScrollArea className="h-full w-full">
+            <div className="px-3 py-2">
+              <NavMain items={data.navMain} />
+            </div>
+          </ScrollArea>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={displayUser} />

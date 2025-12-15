@@ -240,3 +240,12 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease forwards;
 }
+
+/* Ocultar scrollbar completamente (para sidebar colapsado) */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

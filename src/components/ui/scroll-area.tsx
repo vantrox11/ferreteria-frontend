@@ -55,4 +55,28 @@ function ScrollBar({
   )
 }
 
-export { ScrollArea, ScrollBar }
+// ScrollArea variant without visible scrollbar but with scroll behavior
+function ScrollAreaHiddenScrollbar({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+  return (
+    <ScrollAreaPrimitive.Root
+      data-slot="scroll-area"
+      className={cn("relative overflow-hidden", className)}
+      {...props}
+    >
+      <ScrollAreaPrimitive.Viewport
+        data-slot="scroll-area-viewport"
+        className="size-full rounded-[inherit] [&>div]:!block"
+        style={{ overflow: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+}
+
+export { ScrollArea, ScrollBar, ScrollAreaHiddenScrollbar }

@@ -20,13 +20,9 @@ export default function DashboardShell() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
+        {/* Contenedor principal - cada página controla su propio overflow */}
         <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-3 py-3 md:gap-4 md:py-3">
-              {/* Aquí se renderizan las páginas hijas */}
-              <Outlet />
-            </div>
-          </div>
+          <Outlet />
         </div>
       </SidebarInset>
     </SidebarProvider>

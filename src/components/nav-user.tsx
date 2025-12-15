@@ -40,7 +40,8 @@ export function NavUser({
     avatar?: string
   }
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, state } = useSidebar()
+  const isCollapsed = state === "collapsed"
   const navigate = useNavigate()
   const { setUser } = useAuth()
 
@@ -54,6 +55,77 @@ export function NavUser({
     .join("")
     .toUpperCase()
 
+  // Cuando está colapsado, renderizar solo el avatar directamente
+  if (isCollapsed) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem className="flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-sidebar-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+              >
+                <Avatar className="h-8 w-8 rounded-lg border-2 border-sidebar-border">
+                  <AvatarImage src={user.avatar} alt={displayName} />
+                  <AvatarFallback className="rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-xs font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-56 rounded-lg"
+              side="right"
+              align="end"
+              sideOffset={4}
+            >
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={user.avatar} alt={displayName} />
+                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{displayName}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {displayEmail}
+                    </span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <UserCircleIcon />
+                  Account
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <CreditCardIcon />
+                  Billing
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <BellIcon />
+                  Notifications
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  clearToken()
+                  setUser(null)
+                  navigate("/login", { replace: true })
+                }}
+              >
+                <LogOutIcon />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -63,7 +135,7 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg grayscale flex-shrink-0">
                 <AvatarImage src={user.avatar} alt={displayName} />
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
